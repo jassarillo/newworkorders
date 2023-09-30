@@ -19,17 +19,7 @@ class MyApp extends StatelessWidget {
   }
 }
 
- Widget build(BuildContext context) {
-  // ...
-  return const DecoratedBox(
-    decoration: BoxDecoration(
-      image: DecorationImage(
-        image: AssetImage('android\app\src\main\res\mipmap-hdpi\ic_launcher.png'),
-      ),
-    ),
-  );
-  // ...
-}
+
 class MyStatefulWidget extends StatefulWidget {
   const MyStatefulWidget({Key? key}) : super(key: key);
  
@@ -63,19 +53,17 @@ void login(String email, password) async {
   @override
   Widget build(BuildContext context) {
     return Padding(
-        padding: const EdgeInsets.all(10),
+        padding: const EdgeInsets.all(20),
         child: ListView(
           children: <Widget>[
             Container(
-                alignment: Alignment.topLeft,
-                padding: const EdgeInsets.all(10),
-                child: const Text(
-                  'w',
-                  style: TextStyle(fontSize: 20),
-                )),
+                margin: const EdgeInsets.fromLTRB(0, 50, 300, 30),
+                child: Image.asset('assets/login_eym_logo.png',width:100)
+                ),
             Container(
                 alignment: Alignment.topLeft,
                 padding: const EdgeInsets.all(10),
+                margin: const EdgeInsets.all(10, ),
                 child: const Text(
                   'WELCOME',
                   style: TextStyle(
@@ -112,20 +100,35 @@ void login(String email, password) async {
               },
               child: const Text('Forgot Password',),
             ),
-            Container(
-                height: 50,
-                padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
-                child: ElevatedButton(
-                  child: const Text('Login'),
+            // Container(
+            //     height: 50,
+            //     padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
+            //     child: ElevatedButton(
+            //     style: TextButton.styleFrom(foregroundColor: Colors.black),
+            
+            //       child: const Text('LOG IN'),
+            //       onPressed: () {
+            //         login(emailController.text, passwordController.text);
+            //         //print(emailController.text);
+            //         //print(passwordController.text);
+            //         //print('Hola Mundo!');
+            //       },
+            //     )
+            // ),
+            MaterialButton(
+                  minWidth: 200.0,
+                  height: 50,
                   onPressed: () {
                     login(emailController.text, passwordController.text);
-                    //print(emailController.text);
-                    //print(passwordController.text);
-                    //print('Hola Mundo!');
                   },
-                )
-            ),
+                  color: const Color.fromARGB(255, 236, 194, 7),
+                  child: const Text('LOG IN',
+                  style: TextStyle(color: Colors.black)),
+                   
+                ),
+                
             Row(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
                 const Text('Does not have account?'),
                 TextButton(
@@ -138,9 +141,20 @@ void login(String email, password) async {
                   },
                 )
               ],
-              mainAxisAlignment: MainAxisAlignment.center,
             ),
           ],
         ));
   }
+  
 }
+//  Widget build(BuildContext context) {
+//   // ...
+//   return const DecoratedBox(
+//     decoration: BoxDecoration(
+//       image: DecorationImage(
+//         image: AssetImage('assets/2.png'),
+//       ),
+//     ),
+//   );
+//   // ...
+// }
