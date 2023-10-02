@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'pages/WorkOrders.dart';
 void main() => runApp(const MyApp());
  
 class MyApp extends StatelessWidget {
@@ -9,11 +10,11 @@ class MyApp extends StatelessWidget {
  
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return const MaterialApp(
       title: _title,
       home: Scaffold(
         //appBar: AppBar(title: const Text(_title)),
-        body: const MyStatefulWidget(),
+        body: MyStatefulWidget(),
       ),
     );
   }
@@ -42,6 +43,10 @@ void login(String email, password) async {
     if(response.statusCode == 200){
       print(response.body);
       print('Acceso correcto!!!');
+       Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => WorkOrders()),
+      );
     }else{
       print('fail login');
     }
@@ -94,27 +99,10 @@ void login(String email, password) async {
               ),
             ),
             TextButton(
-              onPressed: () {
-                //forgot password screen
-                
+              onPressed: () {              
               },
               child: const Text('Forgot Password',),
             ),
-            // Container(
-            //     height: 50,
-            //     padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
-            //     child: ElevatedButton(
-            //     style: TextButton.styleFrom(foregroundColor: Colors.black),
-            
-            //       child: const Text('LOG IN'),
-            //       onPressed: () {
-            //         login(emailController.text, passwordController.text);
-            //         //print(emailController.text);
-            //         //print(passwordController.text);
-            //         //print('Hola Mundo!');
-            //       },
-            //     )
-            // ),
             MaterialButton(
                   minWidth: 200.0,
                   height: 50,
@@ -122,24 +110,24 @@ void login(String email, password) async {
                     login(emailController.text, passwordController.text);
                   },
                   color: const Color.fromARGB(255, 236, 194, 7),
-                  child: const Text('LOG IN',
+                  child: const Text('LOG IN+P',
                   style: TextStyle(color: Colors.black)),
                    
                 ),
-                
+            const SizedBox(height: 16), // Agrega espacio vertical de 16 puntos
+
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                const Text('Does not have account?'),
-                TextButton(
-                  child: const Text(
-                    'Sign in',
-                    style: TextStyle(fontSize: 20),
-                  ),
-                  onPressed: () {
-                    //signup screen
-                  },
-                )
+              children: const <Widget>[
+                 Text('For registration or password recovery.'),
+              ],
+            ),
+                const SizedBox(height: 16), // Agrega espacio vertical de 16 puntos
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: const <Widget>[
+                 Text('contact us 587 4574'),
+              
               ],
             ),
           ],
@@ -147,14 +135,4 @@ void login(String email, password) async {
   }
   
 }
-//  Widget build(BuildContext context) {
-//   // ...
-//   return const DecoratedBox(
-//     decoration: BoxDecoration(
-//       image: DecorationImage(
-//         image: AssetImage('assets/2.png'),
-//       ),
-//     ),
-//   );
-//   // ...
-// }
+
