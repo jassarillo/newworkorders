@@ -110,7 +110,7 @@ void login(String email, password) async {
                     login(emailController.text, passwordController.text);
                   },
                   color: const Color.fromARGB(255, 236, 194, 7),
-                  child: const Text('LOG IN+P',
+                  child: const Text('LOG IN',
                   style: TextStyle(color: Colors.black)),
                    
                 ),

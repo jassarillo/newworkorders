@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-
+import 'AddNewOrder.dart';
 class WorkOrders extends StatefulWidget {
   const WorkOrders({Key? key}) : super(key: key);
 
@@ -54,36 +54,20 @@ class _WorkOrdersState extends State<WorkOrders> {
               padding: const EdgeInsets.all(20),
               minWidth: 5,
               height: 50,
-              onPressed: () {},
+              onPressed: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => const AddNewOrder()));
+              },
               color: Color.fromARGB(255, 39, 17, 243),
               child: const Text(
                 'Add new order',
                 style: TextStyle(color: Colors.white),
               ),
             ),
-             Card(child: ListTile(title: Text('One-line ListTile'))),
-          Card(
+            const Card(child: ListTile(title: Text('456144'))),
+            const Card(
             child: ListTile(
               leading: FlutterLogo(),
-              title: Text('One-line with leading widget'),
-            ),
-          ),
-          Card(
-            child: ListTile(
-              leading: FlutterLogo(),
-              title: Text('One-line with leading widget'),
-            ),
-          ),
-          Card(
-            child: ListTile(
-              leading: FlutterLogo(),
-              title: Text('One-line with leading widget'),
-            ),
-          ),
-          Card(
-            child: ListTile(
-              leading: FlutterLogo(),
-              title: Text('One-line with leading widget'),
+              title: Text('Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.'),
             ),
           ),
           ],
