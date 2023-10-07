@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 import 'AddNewOrder.dart';
-import 'OrderDetail.dart';
-class WorkOrders extends StatefulWidget {
-  const WorkOrders({Key? key}) : super(key: key);
+class ViewWorkOrders extends StatefulWidget {
+  const ViewWorkOrders({Key? key}) : super(key: key);
 
   @override
-  State<WorkOrders> createState() => _WorkOrdersState();
+  State<ViewWorkOrders> createState() => _ViewWorkOrdersState();
 }
 
-class _WorkOrdersState extends State<WorkOrders> {
+class _ViewWorkOrdersState extends State<ViewWorkOrders> {
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -40,7 +39,7 @@ class _WorkOrdersState extends State<WorkOrders> {
               padding: const EdgeInsets.all(10),
               margin: const EdgeInsets.all(10),
               child: const Text(
-                'Work Orders',
+                'View -- Work',
                 style: TextStyle(
                   color: Color.fromARGB(255, 5, 5, 5),
                   fontWeight: FontWeight.w500,
@@ -66,38 +65,6 @@ class _WorkOrdersState extends State<WorkOrders> {
       SizedBox(width: 10), // Espacio entre el icono y el texto
       Text(
         'Add new order',
-        style: TextStyle(color: Colors.white),
-      ),
-    ],
-  ),
-),
-Container(
-              alignment: Alignment.topLeft,
-              padding: const EdgeInsets.all(10),
-              margin: const EdgeInsets.all(10),
-              child: const Text(
-                '',
-                style: TextStyle(
-                  color: Color.fromARGB(255, 5, 5, 5),
-                  fontWeight: FontWeight.w500,
-                  fontSize: 12,
-                ),
-              ),
-            ),
-            MaterialButton(
-            padding: const EdgeInsets.all(20),
-            minWidth: 5,
-            height: 50,
-            onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => const OrderDetail()));
-            },
-  color: const Color.fromARGB(255, 39, 17, 243),
-  child: Row(
-    mainAxisAlignment: MainAxisAlignment.center,
-    children: const [
-      SizedBox(width: 10), // Espacio entre el icono y el texto
-      Text(
-        'Order Detail View',
         style: TextStyle(color: Colors.white),
       ),
     ],
