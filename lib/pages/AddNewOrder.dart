@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:flutter/cupertino.dart'; //este es para el datepicker scrolling
+import 'package:intl/intl.dart';
 
 class AddNewOrder extends StatefulWidget {
   const AddNewOrder({Key? key}) : super(key: key);
@@ -23,10 +25,28 @@ class WorkOrderStatus {
   }
 }
 
+class WorkOrderPriority {
+  final String priorityId;
+  final String priority;
+
+  WorkOrderPriority({required this.priorityId, required this.priority});
+
+  factory WorkOrderPriority.fromJson(Map<String, dynamic> json) {
+    return WorkOrderPriority(
+      priorityId: json['priority_id'],
+      priority: json['priority'],
+    );
+  }
+}
+
 class _AddNewOrderState extends State<AddNewOrder> {
   List<WorkOrderStatus> workOrderStatusList = [];
+  List<WorkOrderPriority> workOrderPriorityList = [];
+  final DateFormat _dateFormat = DateFormat('yyyy-MM-dd');
 
   WorkOrderStatus? selectedStatus;
+  WorkOrderPriority? selectedPriority;
+  DateTime? selectedDate;
 
   @override
   void initState() {
@@ -34,6 +54,20 @@ class _AddNewOrderState extends State<AddNewOrder> {
     fetchWorkOrderStatusList();
   }
 
+  /*DateTime selectedDate = DateTime.now();
+
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+        context: context,
+        initialDate: selectedDate,
+        firstDate: DateTime(2015, 8),
+        lastDate: DateTime(2101));
+    if (picked != null && picked != selectedDate) {
+      setState(() {
+        selectedDate = picked;
+      });
+    }
+  }*/
   Future<void> fetchWorkOrderStatusList() async {
     final response = await http.get(
       Uri.parse(
@@ -46,11 +80,17 @@ class _AddNewOrderState extends State<AddNewOrder> {
               data[0] is List)
           ? (data[0] as List).map((e) => WorkOrderStatus.fromJson(e)).toList()
           : [];
+      final List<WorkOrderPriority> priorities = (data.isNotEmpty &&
+              data[1] is List)
+          ? (data[1] as List).map((e) => WorkOrderPriority.fromJson(e)).toList()
+          : [];
+
       setState(() {
         workOrderStatusList = statuses;
+        workOrderPriorityList = priorities;
       });
     } else {
-      throw Exception('Failed to load work order statuses');
+      throw Exception('Failed to load work order data');
     }
   }
 
@@ -65,22 +105,13 @@ class _AddNewOrderState extends State<AddNewOrder> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            const SizedBox(height: 20),
-             const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 8, vertical: 16),
-          child: TextField(
-            decoration: InputDecoration(
-              border: OutlineInputBorder(),
-              hintText: 'Enter a search term',
-            ),
-          ),
-        ),
-        
+            const SizedBox(height: 10),
             DropdownButtonFormField<WorkOrderStatus>(
               decoration: const InputDecoration(
-                labelText: 'Seleccione Unit  1',
+                labelText: 'Unit',
                 border: OutlineInputBorder(),
-                contentPadding:  EdgeInsets.symmetric(vertical: 16.0, horizontal: 1.0),
+                contentPadding:
+                    EdgeInsets.symmetric(vertical: 16.0, horizontal: 1.0),
                 // Puedes personalizar el estilo de la etiqueta aquí si es necesario.
               ),
               value: selectedStatus,
@@ -98,11 +129,136 @@ class _AddNewOrderState extends State<AddNewOrder> {
                 },
               ).toList(),
             ),
-            const SizedBox(height: 20),
-           
-            const SizedBox(height: 20),
+            const SizedBox(height: 10),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 0, vertical: 16),
+              child: TextField(
+                decoration: InputDecoration(
+                  labelText: 'Asset',
+                  border: OutlineInputBorder(),
+                  hintText: 'Write...',
+                ),
+              ),
+            ),
+            const SizedBox(height: 10),
+            DropdownButtonFormField<WorkOrderPriority>(
+              decoration: const InputDecoration(
+                labelText: 'Criticality',
+                border: OutlineInputBorder(),
+                contentPadding:
+                    EdgeInsets.symmetric(vertical: 16.0, horizontal: 1.0),
+              ),
+              value: selectedPriority,
+              onChanged: (WorkOrderPriority? newValue) {
+                setState(() {
+                  selectedPriority = newValue;
+                });
+              },
+              items: workOrderPriorityList
+                  .map<DropdownMenuItem<WorkOrderPriority>>(
+                (WorkOrderPriority value) {
+                  return DropdownMenuItem<WorkOrderPriority>(
+                    value: value,
+                    child: Text(value.priority),
+                  );
+                },
+              ).toList(),
+            ),
+            const SizedBox(height: 10),
+            TextFormField(
+              decoration: InputDecoration(
+                labelText: 'Select a Date',
+                border: OutlineInputBorder(),
+                hintText: 'Select a date',
+                suffixIcon: IconButton(
+                  icon: Icon(Icons.date_range),
+                  onPressed: () async {
+                    final DateTime? pickedDate = await showDatePicker(
+                      context: context,
+                      initialDate: DateTime.now(),
+                      firstDate: DateTime(2000),
+                      lastDate: DateTime(2101),
+                    );
+                    if (pickedDate != null && pickedDate != selectedDate) {
+                      setState(() {
+                        selectedDate = pickedDate;
+                      });
+                    }
+                  },
+                ),
+              ),
+              readOnly:
+                  true, // Para evitar la edición manual del campo de fecha.
+              controller: TextEditingController(
+                text: selectedDate != null
+                    ? DateFormat('yyyy-MM-dd').format(selectedDate!)
+                    : '',
+              ),
+            ),
+            const SizedBox(height: 10),
+            const TextField(
+              maxLines:
+                  4, // Configurar maxLines en null permite múltiples líneas
+              decoration: InputDecoration(
+                labelText:
+                    'Problem', // Cambia el texto de la etiqueta según sea necesario
+                border: OutlineInputBorder(),
+                hintText: 'Escribe aquí...',
+              ),
+            ),
+            const SizedBox(height: 10),
+            MaterialButton(
+              padding: const EdgeInsets.all(20),
+              minWidth: 5,
+              height: 50,
+              onPressed: () async {
+                /**  ---------  **/
+                http.Response response = await http.post(
+                    Uri.parse(
+                        'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/workorders/Wo_post'),
+                    body: {
+                      "wo_unit": selectedStatus?.wostatusId,
+                      "wo_asset": "14",
+                      "wo_priority": selectedPriority?.priorityId,
+                      "wo_problem": "Desde la APP3",
+                      "user_id": "8",
+                      "wo_due_date": selectedDate != null
+                          ? _dateFormat.format(selectedDate!)
+                          : '',
+                    });
+                print(response.statusCode);
+                /**  ---------  **/
+              },
+              color: const Color.fromARGB(255, 39, 17, 243),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: const [
+                  SizedBox(width: 10),
+                  Text(
+                    'Guardar Work Order',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ],
+              ),
+            ),
+
+            /*SizedBox(
+              height: 200,
+              child: CupertinoDatePicker(
+                mode: CupertinoDatePickerMode.date,
+                initialDateTime: DateTime(1969, 1, 1),
+                onDateTimeChanged: (DateTime newDateTime) {
+                  // Do something
+                },
+              ),
+            ),*/
             Text(
-              ' ${selectedStatus?.description ?? "Ninguno"} valor del estado: ${selectedStatus?.wostatusId ?? ""}',
+              ' ${selectedStatus?.description ?? "Ninguno"} valor del estado: ${selectedStatus?.wostatusId ?? ""}<borrar>',
+              style: const TextStyle(fontSize: 18),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              ' ${selectedPriority?.priority ?? "Ninguno"} valor del estado: ${selectedPriority?.priorityId ?? ""}<borrar>',
               style: const TextStyle(fontSize: 18),
             ),
           ],
