@@ -41,6 +41,10 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
             'username': email,
             'password': password,
           });
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const WorkOrders()),
+      );
       print(response.body);
       if (response.body == '"200"') {
         // ignore: use_build_context_synchronously

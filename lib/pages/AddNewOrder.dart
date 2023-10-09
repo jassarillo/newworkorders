@@ -11,19 +11,35 @@ class AddNewOrder extends StatefulWidget {
   State<AddNewOrder> createState() => _AddNewOrderState();
 }
 
-class WorkOrderStatus {
-  final String wostatusId;
+class WorkOrderUnit {
+  final String woStatusId;
   final String description;
 
-  WorkOrderStatus({required this.wostatusId, required this.description});
+  WorkOrderUnit({required this.woStatusId, required this.description});
 
-  factory WorkOrderStatus.fromJson(Map<String, dynamic> json) {
-    return WorkOrderStatus(
-      wostatusId: json['site_id'],
+  factory WorkOrderUnit.fromJson(Map<String, dynamic> json) {
+    return WorkOrderUnit(
+      woStatusId: json['site_id'],
       description: json['unit'],
     );
   }
 }
+
+/** */
+class WorkOrderAsset {
+  final String woUitId;
+  final String AssetName;
+
+  WorkOrderAsset({required this.woUitId, required this.AssetName});
+
+  factory WorkOrderAsset.fromJson(Map<String, dynamic> json) {
+    return WorkOrderAsset(
+      woUitId: json['id_asset'],
+      AssetName: json['asset_name'],
+    );
+  }
+}
+/** */
 
 class WorkOrderPriority {
   final String priorityId;
@@ -40,13 +56,15 @@ class WorkOrderPriority {
 }
 
 class _AddNewOrderState extends State<AddNewOrder> {
-  List<WorkOrderStatus> workOrderStatusList = [];
+  List<WorkOrderUnit> workOrderUnitList = [];
   List<WorkOrderPriority> workOrderPriorityList = [];
+  List<WorkOrderAsset> workOrderAssetList = [];
 
   final DateFormat _dateFormat = DateFormat('yyyy-MM-dd');
   final TextEditingController problemController = TextEditingController();
 
-  WorkOrderStatus? selectedStatus;
+  WorkOrderUnit? selectedStatus;
+  WorkOrderAsset? selectedAsset;
   WorkOrderPriority? selectedPriority;
   DateTime? selectedDate;
   String problem = '';
@@ -54,24 +72,10 @@ class _AddNewOrderState extends State<AddNewOrder> {
   @override
   void initState() {
     super.initState();
-    fetchWorkOrderStatusList();
+    fetchWorkOrderUnitList();
   }
 
-  /*DateTime selectedDate = DateTime.now();
-
-  Future<void> _selectDate(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(
-        context: context,
-        initialDate: selectedDate,
-        firstDate: DateTime(2015, 8),
-        lastDate: DateTime(2101));
-    if (picked != null && picked != selectedDate) {
-      setState(() {
-        selectedDate = picked;
-      });
-    }
-  }*/
-  Future<void> fetchWorkOrderStatusList() async {
+  Future<void> fetchWorkOrderUnitList() async {
     final response = await http.get(
       Uri.parse(
           'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/workorders/Catalog_get'),
@@ -79,9 +83,8 @@ class _AddNewOrderState extends State<AddNewOrder> {
     print(response.body);
     if (response.statusCode == 200) {
       final List<dynamic> data = json.decode(response.body);
-      final List<WorkOrderStatus> statuses = (data.isNotEmpty &&
-              data[0] is List)
-          ? (data[0] as List).map((e) => WorkOrderStatus.fromJson(e)).toList()
+      final List<WorkOrderUnit> statuses = (data.isNotEmpty && data[0] is List)
+          ? (data[0] as List).map((e) => WorkOrderUnit.fromJson(e)).toList()
           : [];
       final List<WorkOrderPriority> priorities = (data.isNotEmpty &&
               data[1] is List)
@@ -89,7 +92,7 @@ class _AddNewOrderState extends State<AddNewOrder> {
           : [];
 
       setState(() {
-        workOrderStatusList = statuses;
+        workOrderUnitList = statuses;
         workOrderPriorityList = priorities;
       });
     } else {
@@ -97,11 +100,44 @@ class _AddNewOrderState extends State<AddNewOrder> {
     }
   }
 
+  Future<void> fetchWorkOrderAssetList(String siteId) async {
+    http.Response response = await http.post(
+        Uri.parse(
+            'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/workorders/Unit_asset_post'),
+        body: {
+          "site_id": siteId,
+        });
+    print(response.statusCode);
+    if (response.statusCode == 200) {
+      final List<dynamic> data = json.decode(response.body);
+      final List<WorkOrderAsset> assets =
+          data.map((e) => WorkOrderAsset.fromJson(e)).toList();
+
+      setState(() {
+        workOrderAssetList = assets;
+      });
+    } else {
+      throw Exception('Failed to load work order assets');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Work Orders'),
+        backgroundColor: Colors.white,
+        iconTheme: const IconThemeData(color: Colors.black),
+        centerTitle: true,
+        leading: IconButton(
+          onPressed: () {},
+          icon: const Icon(Icons.menu),
+        ),
+        actions: [
+          IconButton(
+            onPressed: () {},
+            icon: const Icon(Icons.more_vert),
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(20),
@@ -109,7 +145,7 @@ class _AddNewOrderState extends State<AddNewOrder> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             const SizedBox(height: 10),
-            DropdownButtonFormField<WorkOrderStatus>(
+            DropdownButtonFormField<WorkOrderUnit>(
               decoration: const InputDecoration(
                 labelText: 'Unit',
                 border: OutlineInputBorder(),
@@ -118,14 +154,24 @@ class _AddNewOrderState extends State<AddNewOrder> {
                 // Puedes personalizar el estilo de la etiqueta aquí si es necesario.
               ),
               value: selectedStatus,
-              onChanged: (WorkOrderStatus? newValue) {
+              onChanged: (WorkOrderUnit? newValue) {
                 setState(() {
                   selectedStatus = newValue;
                 });
+
+                if (newValue != null) {
+                  fetchWorkOrderAssetList(newValue.woStatusId);
+                  // Cuando obtengas la lista de activos, selecciona el primero por defecto
+                  if (workOrderAssetList.isNotEmpty) {
+                    setState(() {
+                      selectedAsset = workOrderAssetList[0];
+                    });
+                  }
+                }
               },
-              items: workOrderStatusList.map<DropdownMenuItem<WorkOrderStatus>>(
-                (WorkOrderStatus value) {
-                  return DropdownMenuItem<WorkOrderStatus>(
+              items: workOrderUnitList.map<DropdownMenuItem<WorkOrderUnit>>(
+                (WorkOrderUnit value) {
+                  return DropdownMenuItem<WorkOrderUnit>(
                     value: value,
                     child: Text(value.description),
                   );
@@ -133,15 +179,27 @@ class _AddNewOrderState extends State<AddNewOrder> {
               ).toList(),
             ),
             const SizedBox(height: 10),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 0, vertical: 16),
-              child: TextField(
-                decoration: InputDecoration(
-                  labelText: 'Asset',
-                  border: OutlineInputBorder(),
-                  hintText: 'Write...',
-                ),
+            DropdownButtonFormField<WorkOrderAsset>(
+              decoration: const InputDecoration(
+                labelText: 'Asset',
+                border: OutlineInputBorder(),
+                contentPadding:
+                    EdgeInsets.symmetric(vertical: 16.0, horizontal: 1.0),
               ),
+              value: selectedAsset,
+              onChanged: (WorkOrderAsset? newValue) {
+                setState(() {
+                  selectedAsset = newValue;
+                });
+              },
+              items: workOrderAssetList.map<DropdownMenuItem<WorkOrderAsset>>(
+                (WorkOrderAsset value) {
+                  return DropdownMenuItem<WorkOrderAsset>(
+                    value: value,
+                    child: Text(value.AssetName),
+                  );
+                },
+              ).toList(),
             ),
             const SizedBox(height: 10),
             DropdownButtonFormField<WorkOrderPriority>(
@@ -222,7 +280,7 @@ class _AddNewOrderState extends State<AddNewOrder> {
                     Uri.parse(
                         'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/workorders/Wo_post'),
                     body: {
-                      "wo_unit": selectedStatus?.wostatusId,
+                      "wo_unit": selectedStatus?.woStatusId,
                       "wo_asset": "14",
                       "wo_priority": selectedPriority?.priorityId,
                       "wo_problem": problem,
@@ -287,26 +345,15 @@ class _AddNewOrderState extends State<AddNewOrder> {
                 ],
               ),
             ),
-
-            /*SizedBox(
-              height: 200,
-              child: CupertinoDatePicker(
-                mode: CupertinoDatePickerMode.date,
-                initialDateTime: DateTime(1969, 1, 1),
-                onDateTimeChanged: (DateTime newDateTime) {
-                  // Do something
-                },
-              ),
-            ),*/
-            Text(
-              ' ${selectedStatus?.description ?? "Ninguno"} valor del estado: ${selectedStatus?.wostatusId ?? ""}<borrar>',
+            /*Text(
+              ' ${selectedStatus?.description ?? "Ninguno"} valor del estado: ${selectedStatus?.woStatusId ?? ""}<borrar>',
               style: const TextStyle(fontSize: 18),
             ),
             const SizedBox(height: 10),
             Text(
               ' ${selectedPriority?.priority ?? "Ninguno"} valor del estado: ${selectedPriority?.priorityId ?? ""}<borrar>',
               style: const TextStyle(fontSize: 18),
-            ),
+            ),*/
           ],
         ),
       ),
