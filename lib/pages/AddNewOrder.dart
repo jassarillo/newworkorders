@@ -19,8 +19,8 @@ class WorkOrderStatus {
 
   factory WorkOrderStatus.fromJson(Map<String, dynamic> json) {
     return WorkOrderStatus(
-      wostatusId: json['wostatus_id'],
-      description: json['description'],
+      wostatusId: json['site_id'],
+      description: json['unit'],
     );
   }
 }
@@ -42,11 +42,14 @@ class WorkOrderPriority {
 class _AddNewOrderState extends State<AddNewOrder> {
   List<WorkOrderStatus> workOrderStatusList = [];
   List<WorkOrderPriority> workOrderPriorityList = [];
+
   final DateFormat _dateFormat = DateFormat('yyyy-MM-dd');
+  final TextEditingController problemController = TextEditingController();
 
   WorkOrderStatus? selectedStatus;
   WorkOrderPriority? selectedPriority;
   DateTime? selectedDate;
+  String problem = '';
 
   @override
   void initState() {
@@ -73,7 +76,7 @@ class _AddNewOrderState extends State<AddNewOrder> {
       Uri.parse(
           'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/workorders/Catalog_get'),
     );
-
+    print(response.body);
     if (response.statusCode == 200) {
       final List<dynamic> data = json.decode(response.body);
       final List<WorkOrderStatus> statuses = (data.isNotEmpty &&
@@ -196,12 +199,11 @@ class _AddNewOrderState extends State<AddNewOrder> {
               ),
             ),
             const SizedBox(height: 10),
-            const TextField(
-              maxLines:
-                  4, // Configurar maxLines en null permite múltiples líneas
-              decoration: InputDecoration(
-                labelText:
-                    'Problem', // Cambia el texto de la etiqueta según sea necesario
+            TextField(
+              maxLines: 4,
+              controller: problemController,
+              decoration: const InputDecoration(
+                labelText: 'Problem',
                 border: OutlineInputBorder(),
                 hintText: 'Escribe aquí...',
               ),
@@ -212,6 +214,9 @@ class _AddNewOrderState extends State<AddNewOrder> {
               minWidth: 5,
               height: 50,
               onPressed: () async {
+                setState(() {
+                  problem = problemController.text;
+                });
                 /**  ---------  **/
                 http.Response response = await http.post(
                     Uri.parse(
@@ -220,13 +225,54 @@ class _AddNewOrderState extends State<AddNewOrder> {
                       "wo_unit": selectedStatus?.wostatusId,
                       "wo_asset": "14",
                       "wo_priority": selectedPriority?.priorityId,
-                      "wo_problem": "Desde la APP3",
-                      "user_id": "8",
+                      "wo_problem": problem,
+                      "user_id": "9",
                       "wo_due_date": selectedDate != null
                           ? _dateFormat.format(selectedDate!)
                           : '',
                     });
                 print(response.statusCode);
+                if (response.statusCode == 200) {
+                  const succesMessage = "New work order created successfully!";
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        title: const Text("Success!"),
+                        content: const Text(succesMessage),
+                        actions: <Widget>[
+                          TextButton(
+                            child: const Text("Accept"),
+                            onPressed: () {
+                              Navigator.of(context)
+                                  .pop(); // Cierra el AlertDialog.
+                            },
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                } else {
+                  const errorMessage = " We have a problem  :(";
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        title: const Text("Error!"),
+                        content: const Text(errorMessage),
+                        actions: <Widget>[
+                          TextButton(
+                            child: const Text("Accept"),
+                            onPressed: () {
+                              Navigator.of(context)
+                                  .pop(); // Cierra el AlertDialog.
+                            },
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                }
                 /**  ---------  **/
               },
               color: const Color.fromARGB(255, 39, 17, 243),
