@@ -3,6 +3,8 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter/cupertino.dart'; //este es para el datepicker scrolling
 import 'package:intl/intl.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 
 class AddNewOrder extends StatefulWidget {
   const AddNewOrder({Key? key}) : super(key: key);
@@ -68,11 +70,33 @@ class _AddNewOrderState extends State<AddNewOrder> {
   WorkOrderPriority? selectedPriority;
   DateTime? selectedDate;
   String problem = '';
-
+  XFile? _selectedImage;
   @override
   void initState() {
     super.initState();
     fetchWorkOrderUnitList();
+  }
+
+  Future<void> _pickImage() async {
+    final ImagePicker _picker = ImagePicker();
+    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+
+    if (image != null) {
+      setState(() {
+        _selectedImage = image;
+      });
+    }
+  }
+
+  Future<void> _takePhoto() async {
+    final ImagePicker _picker = ImagePicker();
+    final XFile? image = await _picker.pickImage(source: ImageSource.camera);
+
+    if (image != null) {
+      setState(() {
+        _selectedImage = image;
+      });
+    }
   }
 
   Future<void> fetchWorkOrderUnitList() async {
@@ -120,7 +144,9 @@ class _AddNewOrderState extends State<AddNewOrder> {
       throw Exception('Failed to load work order assets');
     }
   }
+/* */
 
+/* */
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -256,6 +282,50 @@ class _AddNewOrderState extends State<AddNewOrder> {
                     : '',
               ),
             ),
+            /** */
+            _selectedImage != null
+                ? Image.file(
+                    File(_selectedImage!.path),
+                    width: 150,
+                    height: 150,
+                  )
+                : Container(),
+            ElevatedButton(
+              onPressed: () {
+                showModalBottomSheet(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: <Widget>[
+                        ListTile(
+                          leading: Icon(Icons.photo),
+                          title: Text('Seleccionar de la galería'),
+                          onTap: () {
+                            Navigator.pop(context);
+                            _pickImage(); // Llamar a la función para seleccionar de la galería
+                          },
+                        ),
+                        ListTile(
+                          leading: Icon(Icons.camera),
+                          title: Text('Tomar una foto'),
+                          onTap: () {
+                            Navigator.pop(context);
+                            _takePhoto(); // Llamar a la función para tomar una foto
+                          },
+                        ),
+                      ],
+                    );
+                  },
+                );
+              },
+              child: const Text(
+                'Add Photo',
+                style: TextStyle(fontSize: 40),
+              ),
+            ),
+            /** */
+
             const SizedBox(height: 10),
             TextField(
               maxLines: 4,
