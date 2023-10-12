@@ -99,6 +99,136 @@ class _AddNewOrderState extends State<AddNewOrder> {
     }
   }
 
+  Future<void> _uploadImageAndSaveOrder() async {
+    if (_selectedImage == null) {
+      // Mostrar un mensaje de error si no se selecciona una imagen.
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text("Error"),
+            content: const Text(
+                "Por favor, selecciona una imagen antes de guardar."),
+            actions: <Widget>[
+              TextButton(
+                child: const Text("Aceptar"),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
+      return;
+    }
+
+    //Envía la imagen al servidor.
+    final Uri url = Uri.parse(
+        'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/workorders/Wo_post');
+    //'http://localhost/PHP/upload.php');
+    final request = http.MultipartRequest('POST', url);
+    request.fields['wo_unit'] = selectedStatus?.woStatusId ?? '';
+    request.fields['wo_asset'] = selectedAsset?.woUitId ?? '';
+    request.fields['wo_priority'] = selectedPriority?.priorityId ?? '';
+    request.fields['wo_problem'] = problem;
+    request.fields['user_id'] = '9';
+    request.fields['wo_due_date'] =
+        selectedDate != null ? _dateFormat.format(selectedDate!) : '';
+
+    final imageFile = File(_selectedImage!.path);
+    //print(imageFile.path);
+    request.files
+        .add(await http.MultipartFile.fromPath('image', imageFile.path));
+
+/* final Uri url = Uri.parse('http://localhost/PHP/upload.php');
+    final Uri url = Uri.parse(
+        'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/workorders/Wo_post');
+    final request = http.MultipartRequest('POST', url);
+    request.fields['wo_unit'] = selectedStatus?.woStatusId ?? '';
+    request.fields['wo_asset'] = selectedAsset?.woUitId ?? '';
+    request.fields['wo_priority'] = selectedPriority?.priorityId ?? '';
+    request.fields['wo_problem'] = problem;
+    request.fields['user_id'] = '9';
+    request.fields['wo_due_date'] =
+        selectedDate != null ? _dateFormat.format(selectedDate!) : '';
+
+    final imageFile = File(_selectedImage!.path);
+    request.files
+        .add(await http.MultipartFile.fromPath('image', imageFile.path));
+
+// Enviar la solicitud
+    final response = await request.send();
+
+// Leer y imprimir la respuesta
+    final responseBody = await response.stream.bytesToString();
+    print(responseBody);
+*/
+    try {
+      final response = await request.send();
+      //print(response.toString());
+      if (response.statusCode == 200) {
+        const exitMessage = "Success!";
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text("Message"),
+              content: const Text(exitMessage),
+              actions: <Widget>[
+                TextButton(
+                  child: const Text("Aceptar"),
+                  onPressed: () {
+                    Navigator.of(context).pop(); // Cierra el AlertDialog.
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      } else {
+        // Maneja el error si la solicitud no es exitosa.
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text("Error"),
+              content:
+                  const Text("Error al cargar la imagen y guardar la orden."),
+              actions: <Widget>[
+                TextButton(
+                  child: const Text("Aceptar"),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      }
+    } catch (e) {
+      // Maneja el error si hay una excepción.
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text("Error"),
+            content: Text("Error al cargar la imagen y guardar la orden: $e"),
+            actions: <Widget>[
+              TextButton(
+                child: const Text("Aceptar"),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
+    }
+  }
+
   Future<void> fetchWorkOrderUnitList() async {
     final response = await http.get(
       Uri.parse(
@@ -328,7 +458,7 @@ class _AddNewOrderState extends State<AddNewOrder> {
 
             const SizedBox(height: 10),
             TextField(
-              maxLines: 4,
+              maxLines: 1,
               controller: problemController,
               decoration: const InputDecoration(
                 labelText: 'Problem',
@@ -346,61 +476,7 @@ class _AddNewOrderState extends State<AddNewOrder> {
                   problem = problemController.text;
                 });
                 /**  ---------  **/
-                http.Response response = await http.post(
-                    Uri.parse(
-                        'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/workorders/Wo_post'),
-                    body: {
-                      "wo_unit": selectedStatus?.woStatusId,
-                      "wo_asset": "14",
-                      "wo_priority": selectedPriority?.priorityId,
-                      "wo_problem": problem,
-                      "user_id": "9",
-                      "wo_due_date": selectedDate != null
-                          ? _dateFormat.format(selectedDate!)
-                          : '',
-                    });
-                print(response.statusCode);
-                if (response.statusCode == 200) {
-                  const succesMessage = "New work order created successfully!";
-                  showDialog(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return AlertDialog(
-                        title: const Text("Success!"),
-                        content: const Text(succesMessage),
-                        actions: <Widget>[
-                          TextButton(
-                            child: const Text("Accept"),
-                            onPressed: () {
-                              Navigator.of(context)
-                                  .pop(); // Cierra el AlertDialog.
-                            },
-                          ),
-                        ],
-                      );
-                    },
-                  );
-                } else {
-                  const errorMessage = " We have a problem  :(";
-                  showDialog(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return AlertDialog(
-                        title: const Text("Error!"),
-                        content: const Text(errorMessage),
-                        actions: <Widget>[
-                          TextButton(
-                            child: const Text("Accept"),
-                            onPressed: () {
-                              Navigator.of(context)
-                                  .pop(); // Cierra el AlertDialog.
-                            },
-                          ),
-                        ],
-                      );
-                    },
-                  );
-                }
+                _uploadImageAndSaveOrder();
                 /**  ---------  **/
               },
               color: const Color.fromARGB(255, 39, 17, 243),
