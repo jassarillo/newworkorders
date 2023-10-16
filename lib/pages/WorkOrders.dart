@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'AddNewOrder.dart';
-import 'OrderDetail.dart';
-import 'package:flutter/material.dart';
 
 class WorkOrders extends StatefulWidget {
   const WorkOrders({Key? key}) : super(key: key);
