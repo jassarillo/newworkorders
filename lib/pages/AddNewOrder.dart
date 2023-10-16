@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:flutter/cupertino.dart'; //este es para el datepicker scrolling
 import 'package:intl/intl.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
@@ -70,7 +69,7 @@ class _AddNewOrderState extends State<AddNewOrder> {
   WorkOrderPriority? selectedPriority;
   DateTime? selectedDate;
   String problem = '';
-  XFile? _selectedImage;
+  //XFile? _selectedImage;
   var imagePicker;
 
   @override
@@ -95,7 +94,7 @@ class _AddNewOrderState extends State<AddNewOrder> {
       imageFileList!.removeAt(index);
     });
   }
-
+/*
   Future<void> _pickImage() async {
     final ImagePicker _picker = ImagePicker();
     final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
@@ -105,8 +104,9 @@ class _AddNewOrderState extends State<AddNewOrder> {
         _selectedImage = image;
       });
     }
-  }
+  }*/
 
+/*
   Future<void> _takePhoto() async {
     final ImagePicker _picker = ImagePicker();
     final XFile? image = await _picker.pickImage(source: ImageSource.camera);
@@ -116,10 +116,10 @@ class _AddNewOrderState extends State<AddNewOrder> {
         _selectedImage = image;
       });
     }
-  }
+  }*/
 
   Future<void> _uploadImageAndSaveOrder() async {
-    /*if (imageFileList != null) {
+    if (imageFileList == null) {
       showDialog(
         context: context,
         builder: (BuildContext context) {
@@ -139,7 +139,7 @@ class _AddNewOrderState extends State<AddNewOrder> {
         },
       );
       return;
-    }*/
+    }
 
     final Uri url = Uri.parse(
         'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/workorders/Wo_post');
@@ -156,6 +156,8 @@ class _AddNewOrderState extends State<AddNewOrder> {
     if (imageFileList != null) {
       for (final image in imageFileList!) {
         final imageFile = File(image.path);
+        final fileName = imageFile.path.split('/').last;
+        //print('Nombre del archivo: $fileName');
         request.files.add(http.MultipartFile(
           'images[]', // El nombre del campo que acepta múltiples imágenes en el servidor
           imageFile.openRead(),
@@ -163,10 +165,14 @@ class _AddNewOrderState extends State<AddNewOrder> {
           filename: imageFile.path.split('/').last, // Nombre del archivo
         ));
       }
+    //print(imageFileList);
     }
 
     try {
       final response = await request.send();
+      // print(response.body);
+      final responseBody = await response.stream.bytesToString();
+      print(responseBody);
       if (response.statusCode == 200) {
         const exitMessage = "Success!";
         showDialog(
@@ -410,7 +416,7 @@ class _AddNewOrderState extends State<AddNewOrder> {
                     : '',
               ),
             ),
-            /** */
+            /*
             _selectedImage != null
                 ? Image.file(
                     File(_selectedImage!.path),
@@ -452,7 +458,7 @@ class _AddNewOrderState extends State<AddNewOrder> {
                 style: TextStyle(fontSize: 40),
               ),
             ),
-            /** */
+             */
 
             const SizedBox(height: 10),
             TextField(
