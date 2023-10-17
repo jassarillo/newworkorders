@@ -11,8 +11,9 @@ class WorkOrders extends StatefulWidget {
 }
 
 class _WorkOrdersState extends State<WorkOrders> {
-  List<Map<String, dynamic>> workOrders = [];
-
+List<Map<String, dynamic>> workOrders = [];
+  List<Map<String, dynamic>> filteredWorkOrders = [];
+  String searchQuery = '';
   @override
   void initState() {
     super.initState();
@@ -27,10 +28,27 @@ class _WorkOrdersState extends State<WorkOrders> {
       if (data is List) {
         setState(() {
           workOrders = List<Map<String, dynamic>>.from(data);
+          filteredWorkOrders = List<Map<String, dynamic>>.from(data);
         });
       }
     }
   }
+  void filterWorkOrders(String query) {
+  setState(() {
+    filteredWorkOrders = workOrders
+        .where((workOrder) =>
+         workOrder['priority']
+     .toLowerCase()
+     .contains(query.toLowerCase()) ||
+            workOrder['wo_description']
+                .toLowerCase()
+                .contains(query.toLowerCase()) ||
+            workOrder['wo_id']
+                .toLowerCase()
+                .contains(query.toLowerCase()))
+        .toList();
+  });
+}
 
   @override
   Widget build(BuildContext context) {
@@ -48,7 +66,9 @@ class _WorkOrdersState extends State<WorkOrders> {
             onPressed: () {},
             icon: const Icon(Icons.more_vert),
           ),
+          
         ],
+        
       ),
       body: ListView(
         padding: const EdgeInsets.all(20),
@@ -90,28 +110,45 @@ class _WorkOrdersState extends State<WorkOrders> {
               ],
             ),
           ),
-          Container(
-            alignment: Alignment.topLeft,
-            padding: const EdgeInsets.all(10),
-            margin: const EdgeInsets.all(10),
-            child: const Text(
-              'ARCHIVE',
-              style: TextStyle(
-                color: Color.fromARGB(255, 5, 5, 5),
-                fontWeight: FontWeight.w500,
-                fontSize: 12,
-              ),
-            ),
-          ),
-          // Aqui colocar el input icono lupa placeholder search
-          for (final workOrder in workOrders)
-            WorkOrderCard(
-              priority: workOrder['priority'] as String,
-              woDescription: workOrder['wo_description'] as String,
-              dueTime: workOrder['due_time'] as String,
-              woId: workOrder['wo_id'] as String,
-              descriptionStatus: workOrder['description'] as String,
-            ),
+          Padding(
+                   padding: const EdgeInsets.all(8.0),
+                   child: TextField(
+                     onChanged: (value) {
+                       setState(() {
+                         searchQuery = value;
+                         filterWorkOrders(searchQuery);
+                       });
+                     },
+                     decoration: InputDecoration(
+                       prefixIcon: Icon(Icons.search),
+                       hintText: 'Search',
+                       border: OutlineInputBorder(
+                         borderRadius: BorderRadius.circular(30.0),
+                       ),
+                     ),
+                   ),
+                 ),
+                 Container(
+                   alignment: Alignment.topLeft,
+                   padding: const EdgeInsets.all(10),
+                   margin: const EdgeInsets.all(10),
+                   child: const Text(
+                     'ARCHIVE',
+                     style: TextStyle(
+                       color: Color.fromARGB(255, 5, 5, 5),
+                       fontWeight: FontWeight.w500,
+                       fontSize: 12,
+                     ),
+                   ),
+                 ),
+                 for (final workOrder in filteredWorkOrders)
+                   WorkOrderCard(
+                     priority: workOrder['priority'] as String,
+                     woDescription: workOrder['wo_description'] as String,
+                     dueTime: workOrder['due_time'] as String,
+                     woId: workOrder['wo_id'] as String,
+                     descriptionStatus: workOrder['description'] as String,
+                   ),
         ],
       ),
     );
@@ -151,6 +188,7 @@ class WorkOrderCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    
     return Card(
       child: ListTile(
         title: Wrap(
