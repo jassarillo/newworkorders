@@ -333,7 +333,7 @@ Container(
   padding: const EdgeInsets.all(10),
   margin: const EdgeInsets.all(10),
   child: const Text(
-    "ARCHIVE",
+    "Order number",
     style: TextStyle(
       color: Color.fromARGB(255, 5, 5, 5),
       fontWeight: FontWeight.w500,

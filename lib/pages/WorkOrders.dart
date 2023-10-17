@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'AddNewOrder.dart';
 
 class WorkOrders extends StatefulWidget {
@@ -9,156 +11,178 @@ class WorkOrders extends StatefulWidget {
 }
 
 class _WorkOrdersState extends State<WorkOrders> {
+  List<Map<String, dynamic>> workOrders = [];
+
+  @override
+  void initState() {
+    super.initState();
+    fetchWorkOrders();
+  }
+
+  Future<void> fetchWorkOrders() async {
+    final response = await http.get(Uri.parse(
+        'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/workorders/Wo_get'));
+    if (response.statusCode == 200) {
+      final List<dynamic> data = json.decode(response.body);
+      if (data is List) {
+        setState(() {
+          workOrders = List<Map<String, dynamic>>.from(data);
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(0), // Agrega el padding deseado
-      child: Scaffold(
-        appBar: AppBar(
-          backgroundColor: Colors.white,
-          iconTheme: const IconThemeData(color: Colors.black),
-          centerTitle: true,
-          leading: IconButton(
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        iconTheme: const IconThemeData(color: Colors.black),
+        centerTitle: true,
+        leading: IconButton(
+          onPressed: () {},
+          icon: const Icon(Icons.menu),
+        ),
+        actions: [
+          IconButton(
             onPressed: () {},
-            icon: const Icon(Icons.menu),
+            icon: const Icon(Icons.more_vert),
           ),
-          actions: [
-            IconButton(
-              onPressed: () {},
-              icon: const Icon(Icons.more_vert),
+        ],
+      ),
+      body: ListView(
+        padding: const EdgeInsets.all(20),
+        children: <Widget>[
+          Container(
+            alignment: Alignment.topLeft,
+            padding: const EdgeInsets.all(10),
+            margin: const EdgeInsets.all(10),
+            child: const Text(
+              'Work Orders',
+              style: TextStyle(
+                color: Color.fromARGB(255, 5, 5, 5),
+                fontWeight: FontWeight.w500,
+                fontSize: 30,
+              ),
             ),
-          ],
-        ),
-        body: ListView(
-          padding: const EdgeInsets.all(20), // Agrega el padding deseado
+          ),
+          MaterialButton(
+            padding: const EdgeInsets.all(20),
+            minWidth: 5,
+            height: 50,
+            onPressed: () {
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => const AddNewOrder()));
+            },
+            color: const Color.fromARGB(255, 39, 17, 243),
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.add,
+                  color: Colors.white,
+                ),
+                SizedBox(width: 10),
+                Text(
+                  'Add new order',
+                  style: TextStyle(color: Colors.white),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            alignment: Alignment.topLeft,
+            padding: const EdgeInsets.all(10),
+            margin: const EdgeInsets.all(10),
+            child: const Text(
+              'ARCHIVE',
+              style: TextStyle(
+                color: Color.fromARGB(255, 5, 5, 5),
+                fontWeight: FontWeight.w500,
+                fontSize: 12,
+              ),
+            ),
+          ),
+          // Aqui colocar el input icono lupa placeholder search
+          for (final workOrder in workOrders)
+            WorkOrderCard(
+              priority: workOrder['priority'] as String,
+              woDescription: workOrder['wo_description'] as String,
+              dueTime: workOrder['due_time'] as String,
+              woId: workOrder['wo_id'] as String,
+              descriptionStatus: workOrder['description'] as String,
+            ),
+        ],
+      ),
+    );
+  }
+}
+Color getColorForPriority(String priority) {
+  switch (priority.toLowerCase()) {
+    case 'low':
+      return Colors.green;
+    case 'medium':
+      return Colors.orange;
+    case 'high':
+      return Colors.red;
+    case 'critical':
+      return Colors.blue;
+    default:
+      return Colors.grey; // Color por defecto si no coincide con ninguno de los valores anteriores
+  }
+}
 
+
+class WorkOrderCard extends StatelessWidget {
+  final String woId;
+  final String descriptionStatus;
+  final String priority;
+  final String woDescription;
+  final String dueTime;
+
+  const WorkOrderCard({
+    Key? key,
+    required this.woId,
+    required this.descriptionStatus,
+    required this.priority,
+    required this.woDescription,
+    required this.dueTime,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: ListTile(
+        title: Wrap(
+          alignment: WrapAlignment.spaceBetween, // Espacio entre los elementos
+          runSpacing: 2, // Espacio entre las líneas
           children: <Widget>[
-            Container(
-              alignment: Alignment.topLeft,
-              padding: const EdgeInsets.all(10),
-              margin: const EdgeInsets.all(10),
-              child: const Text(
-                'Work Orders',
-                style: TextStyle(
-                  color: Color.fromARGB(255, 5, 5, 5),
-                  fontWeight: FontWeight.w500,
-                  fontSize: 30,
-                ),
+            Text(
+              '$woId ',
+              style: TextStyle(
+                color: Colors.black,
+                fontWeight: FontWeight.bold, // Texto en negritas
+                fontSize: 20, // Tamaño de fuente
               ),
             ),
-            MaterialButton(
-              padding: const EdgeInsets.all(20),
-              minWidth: 5,
-              height: 50,
-              onPressed: () {
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const AddNewOrder()));
-              },
-              color: const Color.fromARGB(255, 39, 17, 243),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: const [
-                  Icon(
-                    Icons.add, // Cambia a tu icono deseado
-                    color: Colors.white,
-                  ),
-                  SizedBox(width: 10), // Espacio entre el icono y el texto
-                  Text(
-                    'Add new order',
-                    style: TextStyle(color: Colors.white),
-                  ),
-                ],
-              ),
+
+            Text(
+              '$descriptionStatus ',
+              style: TextStyle(color: Colors.blue),
             ),
             Container(
-              alignment: Alignment.topLeft,
-              padding: const EdgeInsets.all(10),
-              margin: const EdgeInsets.all(10),
-              child: const Text(
-                '',
-                style: TextStyle(
-                  color: Color.fromARGB(255, 5, 5, 5),
-                  fontWeight: FontWeight.w500,
-                  fontSize: 12,
-                ),
-              ),
+            padding: const EdgeInsets.all(3),
+            decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(5),
+            color: getColorForPriority(priority), // Usa la función para obtener el color
             ),
-            /*MaterialButton(
-              padding: const EdgeInsets.all(20),
-              minWidth: 5,
-              height: 50,
-              onPressed: () {
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const OrderDetail()));
-              },
-              color: const Color.fromARGB(255, 39, 17, 243),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: const [
-                  SizedBox(width: 10), // Espacio entre el icono y el texto
-                  Text(
-                    'Order Detail View',
-                    style: TextStyle(color: Colors.white),
-                  ),
-                ],
-              ),
+            child: Text(priority, style: TextStyle(color: Colors.white),),
             ),
-            */
-            Container(
-              alignment: Alignment.topLeft,
-              padding: const EdgeInsets.all(10),
-              margin: const EdgeInsets.all(10),
-              child: const Text(
-                'ARCHIVE',
-                style: TextStyle(
-                  color: Color.fromARGB(255, 5, 5, 5),
-                  fontWeight: FontWeight.w500,
-                  fontSize: 12,
-                ),
-              ),
-            ),
-            const Card(
-              child: ListTile(
-                //leading: FlutterLogo(size: 56.0),
-                title: Text('444009     Two-line ListTile'),
-                subtitle: Text(
-                    'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.'),
-                trailing: Icon(Icons.more_vert),
-              ),
-            ),
-            const Card(
-              child: ListTile(
-                //leading: FlutterLogo(size: 56.0),
-                title: Text('878547      Two-line ListTile'),
-                subtitle: Text(
-                    'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.'),
-                trailing: Icon(Icons.more_vert),
-              ),
-            ),
-            const Card(
-              child: ListTile(
-                //leading: FlutterLogo(size: 56.0),
-                title: Text('939988      Two-line ListTile'),
-                subtitle: Text(
-                    'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.'),
-                trailing: Icon(Icons.more_vert),
-              ),
-            ),
-            const Card(
-              child: ListTile(
-                //leading: FlutterLogo(size: 56.0),
-                title: Text('645345       Two-line ListTile'),
-                subtitle: Text(
-                    'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.'),
-                trailing: Icon(Icons.more_vert),
-              ),
-            ),
+            
           ],
         ),
+        subtitle: Text(woDescription),
+        trailing: Text(dueTime),
       ),
     );
   }
