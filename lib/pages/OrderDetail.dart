@@ -3,7 +3,11 @@ import 'dart:ui';
 import 'package:flutter_1/utils.dart';
 
 class OrderDetail extends StatefulWidget {
-  const OrderDetail({Key? key}) : super(key: key);
+   final String woId;
+  const OrderDetail({
+    Key? key,
+  required this.woId,
+  }) : super(key: key);
 
   @override
   State<OrderDetail> createState() => _OrderDetailState();

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'AddNewOrder.dart';
+import 'OrderDetail.dart';
 
 class WorkOrders extends StatefulWidget {
   const WorkOrders({Key? key}) : super(key: key);
@@ -11,7 +12,7 @@ class WorkOrders extends StatefulWidget {
 }
 
 class _WorkOrdersState extends State<WorkOrders> {
-List<Map<String, dynamic>> workOrders = [];
+  List<Map<String, dynamic>> workOrders = [];
   List<Map<String, dynamic>> filteredWorkOrders = [];
   String searchQuery = '';
   @override
@@ -33,22 +34,21 @@ List<Map<String, dynamic>> workOrders = [];
       }
     }
   }
+
   void filterWorkOrders(String query) {
-  setState(() {
-    filteredWorkOrders = workOrders
-        .where((workOrder) =>
-         workOrder['priority']
-     .toLowerCase()
-     .contains(query.toLowerCase()) ||
-            workOrder['wo_description']
-                .toLowerCase()
-                .contains(query.toLowerCase()) ||
-            workOrder['wo_id']
-                .toLowerCase()
-                .contains(query.toLowerCase()))
-        .toList();
-  });
-}
+    setState(() {
+      filteredWorkOrders = workOrders
+          .where((workOrder) =>
+              workOrder['priority']
+                  .toLowerCase()
+                  .contains(query.toLowerCase()) ||
+              workOrder['wo_description']
+                  .toLowerCase()
+                  .contains(query.toLowerCase()) ||
+              workOrder['wo_id'].toLowerCase().contains(query.toLowerCase()))
+          .toList();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -66,9 +66,7 @@ List<Map<String, dynamic>> workOrders = [];
             onPressed: () {},
             icon: const Icon(Icons.more_vert),
           ),
-          
         ],
-        
       ),
       body: ListView(
         padding: const EdgeInsets.all(20),
@@ -111,49 +109,50 @@ List<Map<String, dynamic>> workOrders = [];
             ),
           ),
           Padding(
-                   padding: const EdgeInsets.all(8.0),
-                   child: TextField(
-                     onChanged: (value) {
-                       setState(() {
-                         searchQuery = value;
-                         filterWorkOrders(searchQuery);
-                       });
-                     },
-                     decoration: InputDecoration(
-                       prefixIcon: Icon(Icons.search),
-                       hintText: 'Search',
-                       border: OutlineInputBorder(
-                         borderRadius: BorderRadius.circular(30.0),
-                       ),
-                     ),
-                   ),
-                 ),
-                 Container(
-                   alignment: Alignment.topLeft,
-                   padding: const EdgeInsets.all(10),
-                   margin: const EdgeInsets.all(10),
-                   child: const Text(
-                     'ARCHIVE',
-                     style: TextStyle(
-                       color: Color.fromARGB(255, 5, 5, 5),
-                       fontWeight: FontWeight.w500,
-                       fontSize: 12,
-                     ),
-                   ),
-                 ),
-                 for (final workOrder in filteredWorkOrders)
-                   WorkOrderCard(
-                     priority: workOrder['priority'] as String,
-                     woDescription: workOrder['wo_description'] as String,
-                     dueTime: workOrder['due_time'] as String,
-                     woId: workOrder['wo_id'] as String,
-                     descriptionStatus: workOrder['description'] as String,
-                   ),
+            padding: const EdgeInsets.all(8.0),
+            child: TextField(
+              onChanged: (value) {
+                setState(() {
+                  searchQuery = value;
+                  filterWorkOrders(searchQuery);
+                });
+              },
+              decoration: InputDecoration(
+                prefixIcon: Icon(Icons.search),
+                hintText: 'Search',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(30.0),
+                ),
+              ),
+            ),
+          ),
+          Container(
+            alignment: Alignment.topLeft,
+            padding: const EdgeInsets.all(10),
+            margin: const EdgeInsets.all(10),
+            child: const Text(
+              'ARCHIVE f',
+              style: TextStyle(
+                color: Color.fromARGB(255, 5, 5, 5),
+                fontWeight: FontWeight.w500,
+                fontSize: 12,
+              ),
+            ),
+          ),
+          for (final workOrder in filteredWorkOrders)
+            WorkOrderCard(
+              priority: workOrder['priority'] as String,
+              woDescription: workOrder['wo_description'] as String,
+              dueTime: workOrder['due_time'] as String,
+              woId: workOrder['wo_id'] as String,
+              descriptionStatus: workOrder['description'] as String,
+            ),
         ],
       ),
     );
   }
 }
+
 Color getColorForPriority(String priority) {
   switch (priority.toLowerCase()) {
     case 'low':
@@ -165,10 +164,10 @@ Color getColorForPriority(String priority) {
     case 'critical':
       return Colors.blue;
     default:
-      return Colors.grey; // Color por defecto si no coincide con ninguno de los valores anteriores
+      return Colors
+          .grey; // Color por defecto si no coincide con ninguno de los valores anteriores
   }
 }
-
 
 class WorkOrderCard extends StatelessWidget {
   final String woId;
@@ -187,41 +186,54 @@ class WorkOrderCard extends StatelessWidget {
   }) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
-    
-    return Card(
-      child: ListTile(
-        title: Wrap(
-          alignment: WrapAlignment.spaceBetween, // Espacio entre los elementos
-          runSpacing: 2, // Espacio entre las líneas
-          children: <Widget>[
-            Text(
-              '$woId ',
-              style: TextStyle(
-                color: Colors.black,
-                fontWeight: FontWeight.bold, // Texto en negritas
-                fontSize: 20, // Tamaño de fuente
+  Widget  build(BuildContext context) {
+   return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => OrderDetail(woId: woId),
+          ),
+        );
+      },
+      child: Card(
+        child: ListTile(
+          title: Wrap(
+            alignment:
+                WrapAlignment.spaceBetween, // Espacio entre los elementos
+            runSpacing: 2, // Espacio entre las líneas
+            children: <Widget>[
+              Text(
+                '$woId ',
+                style: TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold, // Texto en negritas
+                  fontSize: 20, // Tamaño de fuente
+                ),
               ),
-            ),
-
-            Text(
-              '$descriptionStatus ',
-              style: TextStyle(color: Colors.blue),
-            ),
-            Container(
-            padding: const EdgeInsets.all(3),
-            decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(5),
-            color: getColorForPriority(priority), // Usa la función para obtener el color
-            ),
-            child: Text(priority, style: TextStyle(color: Colors.white),),
-            ),
-            
-          ],
+              Text(
+                '$descriptionStatus ',
+                style: TextStyle(color: Colors.blue),
+              ),
+              Container(
+                padding: const EdgeInsets.all(3),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(5),
+                  color: getColorForPriority(
+                      priority), // Usa la función para obtener el color
+                ),
+                child: Text(
+                  priority,
+                  style: TextStyle(color: Colors.white),
+                ),
+              ),
+            ],
+          ),
+          subtitle: Text(woDescription),
+          trailing: Text(dueTime),
         ),
-        subtitle: Text(woDescription),
-        trailing: Text(dueTime),
       ),
     );
+//      return null; //
   }
 }
