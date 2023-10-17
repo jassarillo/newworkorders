@@ -26,7 +26,6 @@ class WorkOrderUnit {
   }
 }
 
-/** */
 class WorkOrderAsset {
   final String woUitId;
   final String AssetName;
@@ -40,7 +39,6 @@ class WorkOrderAsset {
     );
   }
 }
-/** */
 
 class WorkOrderPriority {
   final String priorityId;
@@ -69,6 +67,7 @@ class _AddNewOrderState extends State<AddNewOrder> {
   WorkOrderPriority? selectedPriority;
   DateTime? selectedDate;
   String problem = '';
+   int insertId = 0;
   //XFile? _selectedImage;
   var imagePicker;
 
@@ -94,54 +93,35 @@ class _AddNewOrderState extends State<AddNewOrder> {
       imageFileList!.removeAt(index);
     });
   }
-/*
-  Future<void> _pickImage() async {
-    final ImagePicker _picker = ImagePicker();
-    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
-
-    if (image != null) {
-      setState(() {
-        _selectedImage = image;
-      });
-    }
-  }*/
-
-/*
-  Future<void> _takePhoto() async {
-    final ImagePicker _picker = ImagePicker();
-    final XFile? image = await _picker.pickImage(source: ImageSource.camera);
-
-    if (image != null) {
-      setState(() {
-        _selectedImage = image;
-      });
-    }
-  }*/
 
   Future<void> _uploadImageAndSaveOrder() async {
-    if (imageFileList == null) {
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text("Error"),
-            content: const Text(
-                "Por favor, selecciona al menos una imagen antes de guardar."),
-            actions: <Widget>[
-              TextButton(
-                child: const Text("Aceptar"),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-              ),
-            ],
-          );
-        },
+    if (imageFileList!.length >0) {
+      //Si hay imagenes hace la carga
+      if (selectedStatus?.woStatusId == null ||
+    selectedAsset?.woUitId == null ||
+    selectedPriority?.priorityId == null ||
+    problem.isEmpty ||
+    selectedDate == null) {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: const Text("Error"),
+        content: const Text("Por favor, completa todos los campos antes de guardar."),
+        actions: <Widget>[
+          TextButton(
+            child: const Text("Aceptar"),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+        ],
       );
-      return;
-    }
-
-    final Uri url = Uri.parse(
+    },
+  );
+  return; // Detener la solicitud POST
+}
+          final Uri url = Uri.parse(
         'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/workorders/Wo_post');
     final request = http.MultipartRequest('POST', url);
 
@@ -167,31 +147,34 @@ class _AddNewOrderState extends State<AddNewOrder> {
       }
     //print(imageFileList);
     }
-
+   
     try {
       final response = await request.send();
       // print(response.body);
       final responseBody = await response.stream.bytesToString();
       print(responseBody);
       if (response.statusCode == 200) {
-        const exitMessage = "Success!";
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: const Text("Message"),
-              content: const Text(exitMessage),
-              actions: <Widget>[
-                TextButton(
-                  child: const Text("Aceptar"),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ],
-            );
-          },
+ final data = jsonDecode(responseBody);
+    
+    insertId = data['insert_id'];
+    final exitMessage = "Nueva work order creada Id: $insertId";
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("Message"),
+          content: Text(exitMessage),
+          actions: <Widget>[
+            TextButton(
+              child: const Text("Aceptar"),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
         );
+      },
+    );
       } else {
         // Maneja el error si la solicitud no es exitosa.
         showDialog(
@@ -233,6 +216,31 @@ class _AddNewOrderState extends State<AddNewOrder> {
         },
       );
     }
+
+    }else{
+      //Alert cargar imagenes
+            showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text("Error"),
+            content: const Text(
+                "Por favor, selecciona al menos una imagen antes de guardar."),
+            actions: <Widget>[
+              TextButton(
+                child: const Text("Aceptar"),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
+      return;
+
+    }
+
   }
 
   Future<void> fetchWorkOrderUnitList() async {
@@ -303,8 +311,36 @@ class _AddNewOrderState extends State<AddNewOrder> {
       ),
       body: Center(
         child: Column(
+          
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
+ Container(
+   alignment: Alignment.topLeft,
+   padding: const EdgeInsets.all(10),
+   margin: const EdgeInsets.all(10),
+   child: const Text(
+     'New Work Order',
+     style: TextStyle(
+       color: Color.fromARGB(255, 5, 5, 5),
+       fontWeight: FontWeight.w500,
+       fontSize: 30,
+     ),
+   ),
+ ),
+
+Container(
+  alignment: Alignment.topLeft,
+  padding: const EdgeInsets.all(10),
+  margin: const EdgeInsets.all(10),
+  child: const Text(
+    "ARCHIVE",
+    style: TextStyle(
+      color: Color.fromARGB(255, 5, 5, 5),
+      fontWeight: FontWeight.w500,
+      fontSize: 12,
+    ),
+  ),
+),
             DropdownButtonFormField<WorkOrderUnit>(
               decoration: const InputDecoration(
                 labelText: 'Unit',
@@ -415,51 +451,7 @@ class _AddNewOrderState extends State<AddNewOrder> {
                     ? DateFormat('yyyy-MM-dd').format(selectedDate!)
                     : '',
               ),
-            ),
-            /*
-            _selectedImage != null
-                ? Image.file(
-                    File(_selectedImage!.path),
-                    width: 150,
-                    height: 150,
-                  )
-                : Container(),
-            ElevatedButton(
-              onPressed: () {
-                showModalBottomSheet(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: <Widget>[
-                        ListTile(
-                          leading: Icon(Icons.photo),
-                          title: Text('Seleccionar de la galería'),
-                          onTap: () {
-                            Navigator.pop(context);
-                            _pickImage(); // Llamar a la función para seleccionar de la galería
-                          },
-                        ),
-                        ListTile(
-                          leading: Icon(Icons.camera),
-                          title: Text('Tomar una foto'),
-                          onTap: () {
-                            Navigator.pop(context);
-                            _takePhoto(); // Llamar a la función para tomar una foto
-                          },
-                        ),
-                      ],
-                    );
-                  },
-                );
-              },
-              child: const Text(
-                'Add Photo',
-                style: TextStyle(fontSize: 40),
-              ),
-            ),
-             */
-
+            ),           
             const SizedBox(height: 10),
             TextField(
               maxLines: 1,
@@ -471,13 +463,34 @@ class _AddNewOrderState extends State<AddNewOrder> {
               ),
             ),
             const SizedBox(height: 10),
-            MaterialButton(
-              color: Colors.blue,
-              onPressed: () {
-                selectImages();
-              },
-              child: const Text('Select Multiple Images'),
-            ),
+        MaterialButton(
+  color: Colors.blue,
+  onPressed: () {
+    if (imageFileList!.length >= 5) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title:  const Text("Límite de imágenes alcanzado"),
+            content: const Text("No se pueden seleccionar más de 5 imágenes."),
+            actions: <Widget>[
+              TextButton(
+                child: const Text("Cerrar"),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
+    } else {
+      selectImages();
+    }
+  },
+  child: const Text('Select Multiple Images'),
+),
+
             if (imageFileList!.isNotEmpty)
               Expanded(
                 child: GridView.builder(
@@ -523,9 +536,9 @@ class _AddNewOrderState extends State<AddNewOrder> {
                 /**  ---------  **/
               },
               color: const Color.fromARGB(255, 39, 17, 243),
-              child: Row(
+              child: const Row(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: const [
+                children:  [
                   SizedBox(width: 10),
                   Text(
                     'Guardar Work Order',
