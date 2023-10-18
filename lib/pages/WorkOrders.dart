@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'ProductsDetailsPage.dart';
 import 'AddNewOrder.dart';
-import 'OrderDetail.dart';
 
 class WorkOrders extends StatefulWidget {
   const WorkOrders({Key? key}) : super(key: key);
@@ -192,7 +192,7 @@ class WorkOrderCard extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => OrderDetail(woId: woId),
+            builder: (context) => ProductsDetailsPage(woId: woId),
           ),
         );
       },
