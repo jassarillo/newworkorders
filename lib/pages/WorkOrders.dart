@@ -1,8 +1,8 @@
 import 'dart:convert';
+import 'WODetail.dart';
+import 'AddNewOrder.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'ProductsDetailsPage.dart';
-import 'AddNewOrder.dart';
 
 class WorkOrders extends StatefulWidget {
   const WorkOrders({Key? key}) : super(key: key);
@@ -186,13 +186,13 @@ class WorkOrderCard extends StatelessWidget {
   }) : super(key: key);
 
   @override
-  Widget  build(BuildContext context) {
-   return GestureDetector(
+  Widget build(BuildContext context) {
+    return GestureDetector(
       onTap: () {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => ProductsDetailsPage(woId: woId),
+            builder: (context) => WODetail(woId: woId, priority:'high'),
           ),
         );
       },
@@ -202,10 +202,11 @@ class WorkOrderCard extends StatelessWidget {
             alignment:
                 WrapAlignment.spaceBetween, // Espacio entre los elementos
             runSpacing: 2, // Espacio entre las líneas
+
             children: <Widget>[
               Text(
                 '$woId ',
-                style: TextStyle(
+                style: const TextStyle(
                   color: Colors.black,
                   fontWeight: FontWeight.bold, // Texto en negritas
                   fontSize: 20, // Tamaño de fuente
@@ -213,7 +214,7 @@ class WorkOrderCard extends StatelessWidget {
               ),
               Text(
                 '$descriptionStatus ',
-                style: TextStyle(color: Colors.blue),
+                style: const TextStyle(color: Colors.blue),
               ),
               Container(
                 padding: const EdgeInsets.all(3),

@@ -1,6 +1,6 @@
+import 'pages/WorkOrders.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'pages/WorkOrders.dart';
 
 void main() => runApp(const MyApp());
 
@@ -136,20 +136,20 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
               },
               color: const Color.fromARGB(255, 236, 194, 7),
               child:
-                  const Text('LOG IN +', style: TextStyle(color: Colors.black)),
+                  const Text('LOG IN', style: TextStyle(color: Colors.black)),
             ),
             const SizedBox(height: 16), // Agrega espacio vertical de 16 puntos
 
-            Row(
+            const Row(
               mainAxisAlignment: MainAxisAlignment.center,
-              children: const <Widget>[
+              children:  <Widget>[
                 Text('For registration or password recovery.'),
               ],
             ),
             const SizedBox(height: 16), // Agrega espacio vertical de 16 puntos
-            Row(
+         const   Row(
               mainAxisAlignment: MainAxisAlignment.center,
-              children: const <Widget>[
+              children:  <Widget>[
                 Text('contact us 587 4574'),
               ],
             ),

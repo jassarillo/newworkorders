@@ -1,9 +1,9 @@
-import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import 'dart:io';
 import 'dart:convert';
 import 'package:intl/intl.dart';
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
-import 'dart:io';
 
 class AddNewOrder extends StatefulWidget {
   const AddNewOrder({Key? key}) : super(key: key);
@@ -67,7 +67,7 @@ class _AddNewOrderState extends State<AddNewOrder> {
   WorkOrderPriority? selectedPriority;
   DateTime? selectedDate;
   String problem = '';
-   int insertId = 0;
+  int insertId = 0;
   //XFile? _selectedImage;
   var imagePicker;
 
@@ -95,95 +95,116 @@ class _AddNewOrderState extends State<AddNewOrder> {
   }
 
   Future<void> _uploadImageAndSaveOrder() async {
-    if (imageFileList!.length >0) {
+    if (imageFileList!.length > 0) {
       //Si hay imagenes hace la carga
       if (selectedStatus?.woStatusId == null ||
-    selectedAsset?.woUitId == null ||
-    selectedPriority?.priorityId == null ||
-    problem.isEmpty ||
-    selectedDate == null) {
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        title: const Text("Error"),
-        content: const Text("Por favor, completa todos los campos antes de guardar."),
-        actions: <Widget>[
-          TextButton(
-            child: const Text("Aceptar"),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
-        ],
-      );
-    },
-  );
-  return; // Detener la solicitud POST
-}
-          final Uri url = Uri.parse(
-        'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/workorders/Wo_post');
-    final request = http.MultipartRequest('POST', url);
-
-    request.fields['wo_unit'] = selectedStatus?.woStatusId ?? '';
-    request.fields['wo_asset'] = selectedAsset?.woUitId ?? '';
-    request.fields['wo_priority'] = selectedPriority?.priorityId ?? '';
-    request.fields['wo_problem'] = problem;
-    request.fields['user_id'] = '9';
-    request.fields['wo_due_date'] =
-        selectedDate != null ? _dateFormat.format(selectedDate!) : '';
-
-    if (imageFileList != null) {
-      for (final image in imageFileList!) {
-        final imageFile = File(image.path);
-        final fileName = imageFile.path.split('/').last;
-        //print('Nombre del archivo: $fileName');
-        request.files.add(http.MultipartFile(
-          'images[]', // El nombre del campo que acepta múltiples imágenes en el servidor
-          imageFile.openRead(),
-          imageFile.lengthSync(),
-          filename: imageFile.path.split('/').last, // Nombre del archivo
-        ));
-      }
-    //print(imageFileList);
-    }
-   
-    try {
-      final response = await request.send();
-      // print(response.body);
-      final responseBody = await response.stream.bytesToString();
-      print(responseBody);
-      if (response.statusCode == 200) {
- final data = jsonDecode(responseBody);
-    
-    insertId = data['insert_id'];
-    final exitMessage = "Nueva work order creada Id: $insertId";
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text("Message"),
-          content: Text(exitMessage),
-          actions: <Widget>[
-            TextButton(
-              child: const Text("Aceptar"),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
-      } else {
-        // Maneja el error si la solicitud no es exitosa.
+          selectedAsset?.woUitId == null ||
+          selectedPriority?.priorityId == null ||
+          problem.isEmpty ||
+          selectedDate == null) {
         showDialog(
           context: context,
           builder: (BuildContext context) {
             return AlertDialog(
               title: const Text("Error"),
               content: const Text(
-                  "Error al cargar las imágenes y guardar la orden."),
+                  "Por favor, completa todos los campos antes de guardar."),
+              actions: <Widget>[
+                TextButton(
+                  child: const Text("Aceptar"),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          },
+        );
+        return; // Detener la solicitud POST
+      }
+      final Uri url = Uri.parse(
+          'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/workorders/Wo_post');
+      final request = http.MultipartRequest('POST', url);
+
+      request.fields['wo_unit'] = selectedStatus?.woStatusId ?? '';
+      request.fields['wo_asset'] = selectedAsset?.woUitId ?? '';
+      request.fields['wo_priority'] = selectedPriority?.priorityId ?? '';
+      request.fields['wo_problem'] = problem;
+      request.fields['user_id'] = '9';
+      request.fields['wo_due_date'] =
+          selectedDate != null ? _dateFormat.format(selectedDate!) : '';
+
+      if (imageFileList != null) {
+        for (final image in imageFileList!) {
+          final imageFile = File(image.path);
+          final fileName = imageFile.path.split('/').last;
+          //print('Nombre del archivo: $fileName');
+          request.files.add(http.MultipartFile(
+            'images[]', // El nombre del campo que acepta múltiples imágenes en el servidor
+            imageFile.openRead(),
+            imageFile.lengthSync(),
+            filename: imageFile.path.split('/').last, // Nombre del archivo
+          ));
+        }
+        //print(imageFileList);
+      }
+
+      try {
+        final response = await request.send();
+        // print(response.body);
+        final responseBody = await response.stream.bytesToString();
+        print(responseBody);
+        if (response.statusCode == 200) {
+          final data = jsonDecode(responseBody);
+
+          insertId = data['insert_id'];
+          final exitMessage = "Nueva work order creada Id: $insertId";
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: const Text("Message"),
+                content: Text(exitMessage),
+                actions: <Widget>[
+                  TextButton(
+                    child: const Text("Aceptar"),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                ],
+              );
+            },
+          );
+        } else {
+          // Maneja el error si la solicitud no es exitosa.
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: const Text("Error"),
+                content: const Text(
+                    "Error al cargar las imágenes y guardar la orden."),
+                actions: <Widget>[
+                  TextButton(
+                    child: const Text("Aceptar"),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                ],
+              );
+            },
+          );
+        }
+      } catch (e) {
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text("Error"),
+              content:
+                  Text("Error al cargar las imágenes y guardar la orden: $e"),
               actions: <Widget>[
                 TextButton(
                   child: const Text("Aceptar"),
@@ -196,30 +217,9 @@ class _AddNewOrderState extends State<AddNewOrder> {
           },
         );
       }
-    } catch (e) {
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text("Error"),
-            content:
-                Text("Error al cargar las imágenes y guardar la orden: $e"),
-            actions: <Widget>[
-              TextButton(
-                child: const Text("Aceptar"),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-              ),
-            ],
-          );
-        },
-      );
-    }
-
-    }else{
+    } else {
       //Alert cargar imagenes
-            showDialog(
+      showDialog(
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
@@ -238,9 +238,7 @@ class _AddNewOrderState extends State<AddNewOrder> {
         },
       );
       return;
-
     }
-
   }
 
   Future<void> fetchWorkOrderUnitList() async {
@@ -311,36 +309,34 @@ class _AddNewOrderState extends State<AddNewOrder> {
       ),
       body: Center(
         child: Column(
-          
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
- Container(
-   alignment: Alignment.topLeft,
-   padding: const EdgeInsets.all(10),
-   margin: const EdgeInsets.all(10),
-   child: const Text(
-     'New Work Order',
-     style: TextStyle(
-       color: Color.fromARGB(255, 5, 5, 5),
-       fontWeight: FontWeight.w500,
-       fontSize: 30,
-     ),
-   ),
- ),
-
-Container(
-  alignment: Alignment.topLeft,
-  padding: const EdgeInsets.all(10),
-  margin: const EdgeInsets.all(10),
-  child: const Text(
-    "Order number",
-    style: TextStyle(
-      color: Color.fromARGB(255, 5, 5, 5),
-      fontWeight: FontWeight.w500,
-      fontSize: 12,
-    ),
-  ),
-),
+            Container(
+              alignment: Alignment.topLeft,
+              padding: const EdgeInsets.all(10),
+              margin: const EdgeInsets.all(10),
+              child: const Text(
+                'New Work Order',
+                style: TextStyle(
+                  color: Color.fromARGB(255, 5, 5, 5),
+                  fontWeight: FontWeight.w500,
+                  fontSize: 30,
+                ),
+              ),
+            ),
+            Container(
+              alignment: Alignment.topLeft,
+              padding: const EdgeInsets.all(10),
+              margin: const EdgeInsets.all(10),
+              child: const Text(
+                "Order number",
+                style: TextStyle(
+                  color: Color.fromARGB(255, 5, 5, 5),
+                  fontWeight: FontWeight.w500,
+                  fontSize: 12,
+                ),
+              ),
+            ),
             DropdownButtonFormField<WorkOrderUnit>(
               decoration: const InputDecoration(
                 labelText: 'Unit',
@@ -451,7 +447,7 @@ Container(
                     ? DateFormat('yyyy-MM-dd').format(selectedDate!)
                     : '',
               ),
-            ),           
+            ),
             const SizedBox(height: 10),
             TextField(
               maxLines: 1,
@@ -463,34 +459,34 @@ Container(
               ),
             ),
             const SizedBox(height: 10),
-        MaterialButton(
-  color: Colors.blue,
-  onPressed: () {
-    if (imageFileList!.length >= 5) {
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title:  const Text("Límite de imágenes alcanzado"),
-            content: const Text("No se pueden seleccionar más de 5 imágenes."),
-            actions: <Widget>[
-              TextButton(
-                child: const Text("Cerrar"),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-              ),
-            ],
-          );
-        },
-      );
-    } else {
-      selectImages();
-    }
-  },
-  child: const Text('Select Multiple Images'),
-),
-
+            MaterialButton(
+              color: Colors.blue,
+              onPressed: () {
+                if (imageFileList!.length >= 5) {
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        title: const Text("Límite de imágenes alcanzado"),
+                        content: const Text(
+                            "No se pueden seleccionar más de 5 imágenes."),
+                        actions: <Widget>[
+                          TextButton(
+                            child: const Text("Cerrar"),
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                } else {
+                  selectImages();
+                }
+              },
+              child: const Text('Select Multiple Images'),
+            ),
             if (imageFileList!.isNotEmpty)
               Expanded(
                 child: GridView.builder(
@@ -538,7 +534,7 @@ Container(
               color: const Color.fromARGB(255, 39, 17, 243),
               child: const Row(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children:  [
+                children: [
                   SizedBox(width: 10),
                   Text(
                     'Guardar Work Order',
