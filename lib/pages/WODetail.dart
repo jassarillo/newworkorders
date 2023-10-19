@@ -1,4 +1,7 @@
+import 'Comments.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
+
 
 class WODetail extends StatefulWidget {
   final String woId;
@@ -324,12 +327,12 @@ class _WODetailState extends State<WODetail> {
     ],
   ),
 ),
-
+  
 Card(
   child: const ListTile(
     leading: Icon(
-      Icons.comment, // Icono de lápiz (edit)
-      color: Color.fromARGB(255, 124, 122, 122), // Cambia el color a tu preferencia
+      Icons.comment,
+      color: Color.fromARGB(255, 124, 122, 122),
     ),
     title: Wrap(
       alignment: WrapAlignment.spaceBetween,
@@ -348,11 +351,34 @@ Card(
     subtitle: Text('woDescription ccdcd'),
     trailing: Icon(
       Icons.arrow_forward,
-    color: Color.fromARGB(255, 124, 122, 122),
+      color: Color.fromARGB(255, 124, 122, 122),
     ),
   ),
 ),
-
+   MaterialButton(
+     padding: const EdgeInsets.all(20),
+     minWidth: 5,
+     height: 50,
+     onPressed: () {
+       Navigator.push(context,
+           MaterialPageRoute(builder: (context) => const Comments()));
+     },
+     color: const Color.fromARGB(255, 39, 17, 243),
+     child: const Row(
+       mainAxisAlignment: MainAxisAlignment.center,
+       children: [
+         Icon(
+           Icons.add,
+           color: Colors.white,
+         ),
+         SizedBox(width: 10),
+         Text(
+           'Add new order',
+           style: TextStyle(color: Colors.white),
+         ),
+       ],
+     ),
+   ),
         ],
       ),
     );
