@@ -1,15 +1,16 @@
+import 'dart:convert';
 import 'Comments.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/material.dart';
-
+import 'package:http/http.dart' as http;
 
 class WODetail extends StatefulWidget {
   final String woId;
   final String priority;
+
   const WODetail({
     Key? key,
     required this.woId,
-    required this.priority, // Agregar el valor inicial aquí
+    required this.priority,
   }) : super(key: key);
 
   @override
@@ -27,9 +28,23 @@ Color getColorForPriority(String priority) {
     case 'critical':
       return Colors.blue;
     default:
-      return Colors
-          .grey; // Color por defecto si no coincide con ninguno de los valores anteriores
+      return Colors.grey;
   }
+}
+
+Future<Map<String, dynamic>> fetchWorkOrderDetails(String woId) async {
+  final url = Uri.parse(
+      'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/workorders/Wo_get/$woId');
+  final response = await http.get(url);
+
+  if (response.statusCode == 200) {
+    final jsonResponse = json.decode(response.body);
+    if (jsonResponse is List && jsonResponse.isNotEmpty) {
+      return jsonResponse[0];
+    }
+  }
+
+  return {};
 }
 
 class _WODetailState extends State<WODetail> {
@@ -51,335 +66,257 @@ class _WODetailState extends State<WODetail> {
           ),
         ],
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(5),
-        children: <Widget>[
-          Row(
-            mainAxisAlignment: MainAxisAlignment
-                .spaceBetween, // Alinea los elementos a la izquierda y derecha
-            children: <Widget>[
-              Container(
-                alignment: Alignment.topLeft,
-                padding: const EdgeInsets.all(5),
-                margin: const EdgeInsets.all(5),
-                child: const Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+      body: FutureBuilder<Map<String, dynamic>>(
+        future: fetchWorkOrderDetails(widget.woId),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(
+              child: CircularProgressIndicator(),
+            );
+          } else if (snapshot.hasError) {
+            return Center(
+              child: Text('Error: ${snapshot.error}'),
+            );
+          } else if (snapshot.hasData) {
+            final workOrderDetails = snapshot.data;
+            final woId = workOrderDetails?['wo_id'];
+            final description = workOrderDetails?['description'];
+            final priority = workOrderDetails?['priority'];
+            final unit = workOrderDetails?['unit'];
+            final assetName = workOrderDetails?['asset_name'];
+            final woDescription = workOrderDetails?['wo_description'];
+
+            return ListView(
+              padding: const EdgeInsets.all(5),
+              children: <Widget>[
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: <Widget>[
-                    Text(
-                      'Work Order Number',
-                      style: TextStyle(
-                        color: Color.fromARGB(255, 5, 5, 5),
-                        fontWeight: FontWeight.w500,
-                        fontSize: 10,
+                    Expanded(
+                      child: Container(
+                        margin: const EdgeInsets.all(10),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: <Widget>[
+                            Text(
+                              'Work Order Number',
+                              style: TextStyle(
+                                color: Color.fromARGB(255, 5, 5, 5),
+                                fontWeight: FontWeight.w500,
+                                fontSize: 10,
+                              ),
+                            ),
+                            Text(
+                              woId,
+                              style: TextStyle(
+                                color: Color.fromARGB(255, 5, 5, 5),
+                                fontWeight: FontWeight.w500,
+                                fontSize: 30,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                    Text(
-                      '4581447',
-                      style: TextStyle(
-                        color: Color.fromARGB(255, 5, 5, 5),
-                        fontWeight: FontWeight.w500,
-                        fontSize: 30,
+                    Expanded(
+                      child: Container(
+                        margin: const EdgeInsets.all(10),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: <Widget>[
+                            Text(
+                              'Status',
+                              style: TextStyle(
+                                color: Color.fromARGB(255, 5, 5, 5),
+                                fontWeight: FontWeight.w500,
+                                fontSize: 16,
+                              ),
+                            ),
+                            Text(
+                              description,
+                              style: TextStyle(color: Colors.blue),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: Container(
+                        margin: const EdgeInsets.all(10),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: <Widget>[
+                            Text(
+                              'Priority',
+                              style: TextStyle(
+                                color: Color.fromARGB(255, 5, 5, 5),
+                                fontWeight: FontWeight.w500,
+                                fontSize: 16,
+                              ),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.all(3),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(5),
+                                color: getColorForPriority(priority),
+                              ),
+                              child: Text(
+                                priority,
+                                style: TextStyle(color: Colors.white),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ],
                 ),
-              ),
-              Expanded(
-                child: Container(
-                  margin: const EdgeInsets.all(10),
-                  child: const Column(
-                    crossAxisAlignment: CrossAxisAlignment
-                        .end, // Alinea los elementos a la derecha
+                Container(
+                  alignment: Alignment.topLeft,
+                  padding: const EdgeInsets.all(5),
+                  margin: const EdgeInsets.all(5),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
-                      Text(
-                        'Status',
+                      const Text(
+                        'Unit',
                         style: TextStyle(
                           color: Color.fromARGB(255, 5, 5, 5),
                           fontWeight: FontWeight.w500,
-                          fontSize: 16,
+                          fontSize:
+                              10, // Puedes ajustar el tamaño del label según tus preferencias
                         ),
                       ),
                       Text(
-                        'open',
+                        unit,
                         style: TextStyle(color: Colors.blue),
                       ),
                     ],
                   ),
                 ),
-              ),
-              Expanded(
-                child: Container(
-                  margin: const EdgeInsets.all(10),
+                Container(
+                  alignment: Alignment.topLeft,
+                  padding: const EdgeInsets.all(5),
+                  margin: const EdgeInsets.all(5),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment
-                        .end, // Alinea los elementos a la derecha
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
                       const Text(
-                        'Priority',
+                        'Asset',
                         style: TextStyle(
                           color: Color.fromARGB(255, 5, 5, 5),
                           fontWeight: FontWeight.w500,
-                          fontSize: 16,
+                          fontSize:
+                              10, // Puedes ajustar el tamaño del label según tus preferencias
                         ),
                       ),
-                      Container(
-                        padding: const EdgeInsets.all(3),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(5),
-                          color: getColorForPriority('high'),
-                        ),
-                        child: const Text(
-                          'high',
-                          style: TextStyle(color: Colors.white),
+                      Text(
+                        assetName,
+                        style: TextStyle(
+                          color: Color.fromARGB(255, 5, 5, 5),
+                          fontWeight: FontWeight.w500,
+                          fontSize: 15,
                         ),
                       ),
                     ],
                   ),
                 ),
-              ),
-            ],
-          ),
-          Container(
-            alignment: Alignment.topLeft,
-            padding: const EdgeInsets.all(5),
-            margin: const EdgeInsets.all(5),
-            child: const Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Text(
-                  'Unit',
-                  style: TextStyle(
-                    color: Color.fromARGB(255, 5, 5, 5),
-                    fontWeight: FontWeight.w500,
-                    fontSize:
-                        10, // Puedes ajustar el tamaño del label según tus preferencias
+                Container(
+                  alignment: Alignment.topLeft,
+                  padding: EdgeInsets.all(5),
+                  margin: EdgeInsets.all(5),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Text(
+                        'Problem',
+                        style: TextStyle(
+                          color: Color.fromARGB(255, 5, 5, 5),
+                          fontWeight: FontWeight.w500,
+                          fontSize:
+                              12, // Puedes ajustar el tamaño del label según tus preferencias
+                        ),
+                      ),
+                      Text(
+                        woDescription,
+                        style: TextStyle(
+                          color: Color.fromARGB(255, 5, 5, 5),
+                          fontWeight: FontWeight.w500,
+                          fontSize: 15,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                Text(
-                  'Integer omare aliquam',
-                  style: TextStyle(
-                    color: Color.fromARGB(255, 5, 5, 5),
-                    fontWeight: FontWeight.w500,
-                    fontSize: 15,
+                MaterialButton(
+                  padding: const EdgeInsets.all(5),
+                  minWidth: 5,
+                  height: 50,
+                  onPressed: () {},
+                  color: const Color.fromARGB(255, 39, 17, 243),
+                  child: const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.access_time,
+                        color: Colors.white,
+                      ),
+                      SizedBox(width: 10),
+                      Text(
+                        'CHECK IN',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ],
                   ),
                 ),
+                InkWell(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => Comments(woId: woId),
+                      ),
+                    );
+                  },
+                  child: const Card(
+                    child: ListTile(
+                      leading: Icon(
+                        Icons.comment,
+                        color: Color.fromARGB(255, 124, 122, 122),
+                      ),
+                      title: Wrap(
+                        alignment: WrapAlignment.spaceBetween,
+                        runSpacing: 2,
+                        children: <Widget>[
+                          Text(
+                            'Comments',
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 20,
+                            ),
+                          ),
+                        ],
+                      ),
+                      subtitle: Text('woDescription ccdcd'),
+                      trailing: Icon(
+                        Icons.arrow_forward,
+                        color: Color.fromARGB(255, 124, 122, 122),
+                      ),
+                    ),
+                  ),
+
+
+                )
               ],
-            ),
-          ),
-          Container(
-            alignment: Alignment.topLeft,
-            padding: const EdgeInsets.all(5),
-            margin: const EdgeInsets.all(5),
-            child: const Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Text(
-                  'Asset',
-                  style: TextStyle(
-                    color: Color.fromARGB(255, 5, 5, 5),
-                    fontWeight: FontWeight.w500,
-                    fontSize:
-                        10, // Puedes ajustar el tamaño del label según tus preferencias
-                  ),
-                ),
-                Text(
-                  'Donec egestas massa',
-                  style: TextStyle(
-                    color: Color.fromARGB(255, 5, 5, 5),
-                    fontWeight: FontWeight.w500,
-                    fontSize: 15,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Container(
-            alignment: Alignment.topLeft,
-            padding: const EdgeInsets.all(5),
-            margin: const EdgeInsets.all(5),
-            child: const Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Text(
-                  'Problem',
-                  style: TextStyle(
-                    color: Color.fromARGB(255, 5, 5, 5),
-                    fontWeight: FontWeight.w500,
-                    fontSize:
-                        12, // Puedes ajustar el tamaño del label según tus preferencias
-                  ),
-                ),
-                Text(
-                  'Lorem ipsum es el texto que se usa habitualmente en diseño gráfico en demostraciones de tipografías.',
-                  style: TextStyle(
-                    color: Color.fromARGB(255, 5, 5, 5),
-                    fontWeight: FontWeight.w500,
-                    fontSize: 15,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment
-                .center, // Alinea los elementos horizontalmente al centro
-            children: <Widget>[
-              Container(
-                alignment: Alignment.center,
-                padding: const EdgeInsets.all(5),
-                margin: const EdgeInsets.all(14),
-                child: const Column(
-                  children: <Widget>[
-                    Text(
-                      'Due Time',
-                      style: TextStyle(
-                        color: Color.fromARGB(255, 5, 5, 5),
-                        fontWeight: FontWeight.w500,
-                        fontSize:
-                            10, // Puedes ajustar el tamaño del label según tus preferencias
-                      ),
-                    ),
-                    Text(
-                      '4581447',
-                      style: TextStyle(
-                        color: Color.fromARGB(255, 5, 5, 5),
-                        fontWeight: FontWeight.w500,
-                        fontSize: 16,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                alignment: Alignment.topLeft,
-                padding: const EdgeInsets.all(5),
-                margin: const EdgeInsets.all(14),
-                child: const Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Text(
-                      'Created',
-                      style: TextStyle(
-                        color: Color.fromARGB(255, 5, 5, 5),
-                        fontWeight: FontWeight.w500,
-                        fontSize:
-                            12, // Puedes ajustar el tamaño del label según tus preferencias
-                      ),
-                    ),
-                    Text(
-                      '26/10/2023',
-                      style: TextStyle(
-                        color: Color.fromARGB(255, 5, 5, 5),
-                        fontWeight: FontWeight.w500,
-                        fontSize: 16,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                alignment: Alignment.topLeft,
-                padding: const EdgeInsets.all(5),
-                margin: const EdgeInsets.all(14),
-                child: const Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Text(
-                      'Closed',
-                      style: TextStyle(
-                        color: Color.fromARGB(255, 5, 5, 5),
-                        fontWeight: FontWeight.w500,
-                        fontSize:
-                            10, // Puedes ajustar el tamaño del label según tus preferencias
-                      ),
-                    ),
-                    Text(
-                      '26/10/2023',
-                      style: TextStyle(
-                        color: Color.fromARGB(255, 5, 5, 5),
-                        fontWeight: FontWeight.w500,
-                        fontSize: 16,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          MaterialButton(
-  padding: const EdgeInsets.all(5),
-  minWidth: 5,
-  height: 50,
-  onPressed: () {},
-  color: const Color.fromARGB(255, 39, 17, 243),
-  child: const Row(
-    mainAxisAlignment: MainAxisAlignment.center,
-    children: [
-      Icon(
-        Icons.access_time,
-        color: Colors.white,
-      ),
-      SizedBox(width: 10),
-      Text(
-        'CHECK IN',
-        style: TextStyle(color: Colors.white),
-      ),
-    ],
-  ),
-),
-  
-Card(
-  child: const ListTile(
-    leading: Icon(
-      Icons.comment,
-      color: Color.fromARGB(255, 124, 122, 122),
-    ),
-    title: Wrap(
-      alignment: WrapAlignment.spaceBetween,
-      runSpacing: 2,
-      children: <Widget>[
-        Text(
-          'Comments',
-          style: TextStyle(
-            color: Colors.black,
-            fontWeight: FontWeight.bold,
-            fontSize: 20,
-          ),
-        ),
-      ],
-    ),
-    subtitle: Text('woDescription ccdcd'),
-    trailing: Icon(
-      Icons.arrow_forward,
-      color: Color.fromARGB(255, 124, 122, 122),
-    ),
-  ),
-),
-   MaterialButton(
-     padding: const EdgeInsets.all(20),
-     minWidth: 5,
-     height: 50,
-     onPressed: () {
-       Navigator.push(context,
-           MaterialPageRoute(builder: (context) => const Comments()));
-     },
-     color: const Color.fromARGB(255, 39, 17, 243),
-     child: const Row(
-       mainAxisAlignment: MainAxisAlignment.center,
-       children: [
-         Icon(
-           Icons.add,
-           color: Colors.white,
-         ),
-         SizedBox(width: 10),
-         Text(
-           'Add new order',
-           style: TextStyle(color: Colors.white),
-         ),
-       ],
-     ),
-   ),
-        ],
+            );
+          } else {
+            // Mostrar un indicador de carga o manejar el caso de error aquí.
+            return const Center(
+              child: Text('No se encontraron datos.'),
+            );
+          }
+        },
       ),
     );
   }

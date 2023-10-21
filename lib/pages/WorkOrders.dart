@@ -23,7 +23,7 @@ class _WorkOrdersState extends State<WorkOrders> {
 
   Future<void> fetchWorkOrders() async {
     final response = await http.get(Uri.parse(
-        'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/workorders/Wo_get'));
+        'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/workorders/Wo_get/0'));
     if (response.statusCode == 200) {
       final List<dynamic> data = json.decode(response.body);
       if (data is List) {
@@ -131,7 +131,7 @@ class _WorkOrdersState extends State<WorkOrders> {
             padding: const EdgeInsets.all(10),
             margin: const EdgeInsets.all(10),
             child: const Text(
-              'ARCHIVE f',
+              'ARCHIVE',
               style: TextStyle(
                 color: Color.fromARGB(255, 5, 5, 5),
                 fontWeight: FontWeight.w500,
