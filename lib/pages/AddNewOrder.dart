@@ -307,9 +307,14 @@ class _AddNewOrderState extends State<AddNewOrder> {
           ),
         ],
       ),
+      
       body: Center(
+        
+        child: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
+
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          //crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             Container(
               alignment: Alignment.topLeft,
@@ -450,7 +455,7 @@ class _AddNewOrderState extends State<AddNewOrder> {
             ),
             const SizedBox(height: 10),
             TextField(
-              maxLines: 1,
+              maxLines: 4,
               controller: problemController,
               decoration: const InputDecoration(
                 labelText: 'Problem',
@@ -458,6 +463,7 @@ class _AddNewOrderState extends State<AddNewOrder> {
                 hintText: 'Escribe aquí...',
               ),
             ),
+            //jjjjjjjjkkkk
             const SizedBox(height: 10),
             MaterialButton(
               color: Colors.blue,
@@ -487,38 +493,41 @@ class _AddNewOrderState extends State<AddNewOrder> {
               },
               child: const Text('Select Multiple Images'),
             ),
+            
             if (imageFileList!.isNotEmpty)
-              Expanded(
-                child: GridView.builder(
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 3, // 3 columnas
-                  ),
-                  itemCount: imageFileList!.length,
-                  itemBuilder: (BuildContext context, int index) {
-                    return InkWell(
-                      onTap: () {
-                        removeImage(index);
-                      },
-                      child: Stack(
-                        children: [
-                          Image.file(
-                            File(imageFileList![index].path),
-                            fit: BoxFit.cover,
-                          ),
-                          const Positioned(
-                            top: 5,
-                            right: 5,
-                            child: Icon(
-                              Icons.close,
-                              color: Colors.red,
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
+  Container(
+    height: 200, // Establece una altura máxima para el GridView
+    child: GridView.builder(
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3, // 3 columnas
+      ),
+      itemCount: imageFileList!.length,
+      itemBuilder: (BuildContext context, int index) {
+        return InkWell(
+          onTap: () {
+            removeImage(index);
+          },
+          child: Stack(
+            children: [
+              Image.file(
+                File(imageFileList![index].path),
+                fit: BoxFit.cover,
+              ),
+              const Positioned(
+                top: 3,
+                right: 3,
+                child: Icon(
+                  Icons.close,
+                  color: Colors.red,
                 ),
               ),
+            ],
+          ),
+        );
+      },
+    ),
+  ),
+              
             MaterialButton(
               padding: const EdgeInsets.all(20),
               minWidth: 5,
@@ -545,6 +554,8 @@ class _AddNewOrderState extends State<AddNewOrder> {
             ),
           ],
         ),
+      ),
+        //jjkkjkkjk
       ),
     );
   }
