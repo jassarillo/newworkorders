@@ -111,8 +111,11 @@ class _CommentsState extends State<Comments> {
         iconTheme: const IconThemeData(color: Colors.black),
         centerTitle: true,
         leading: IconButton(
-          onPressed: () {},
-          icon: const Icon(Icons.menu),
+          onPressed: () {
+            Navigator.of(context).pop(); // Esta línea permite retroceder
+          },
+          icon: const Icon(
+              Icons.arrow_back), // Cambia el ícono a una flecha hacia atrás
         ),
         actions: [
           IconButton(

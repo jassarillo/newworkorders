@@ -307,254 +307,251 @@ class _AddNewOrderState extends State<AddNewOrder> {
           ),
         ],
       ),
-      
       body: Center(
-        
         child: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-
-        child: Column(
-          //crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Container(
-              alignment: Alignment.topLeft,
-              padding: const EdgeInsets.all(10),
-              margin: const EdgeInsets.all(10),
-              child: const Text(
-                'New Work Order',
-                style: TextStyle(
-                  color: Color.fromARGB(255, 5, 5, 5),
-                  fontWeight: FontWeight.w500,
-                  fontSize: 30,
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            //crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Container(
+                alignment: Alignment.topLeft,
+                padding: const EdgeInsets.all(10),
+                margin: const EdgeInsets.all(10),
+                child: const Text(
+                  'New Work Order',
+                  style: TextStyle(
+                    color: Color.fromARGB(255, 5, 5, 5),
+                    fontWeight: FontWeight.w500,
+                    fontSize: 30,
+                  ),
                 ),
               ),
-            ),
-            Container(
-              alignment: Alignment.topLeft,
-              padding: const EdgeInsets.all(10),
-              margin: const EdgeInsets.all(10),
-              child: const Text(
-                "Order number",
-                style: TextStyle(
-                  color: Color.fromARGB(255, 5, 5, 5),
-                  fontWeight: FontWeight.w500,
-                  fontSize: 12,
+              Container(
+                alignment: Alignment.topLeft,
+                padding: const EdgeInsets.all(10),
+                margin: const EdgeInsets.all(10),
+                child: const Text(
+                  "Order number",
+                  style: TextStyle(
+                    color: Color.fromARGB(255, 5, 5, 5),
+                    fontWeight: FontWeight.w500,
+                    fontSize: 12,
+                  ),
                 ),
               ),
-            ),
-            DropdownButtonFormField<WorkOrderUnit>(
-              decoration: const InputDecoration(
-                labelText: 'Unit',
-                border: OutlineInputBorder(),
-                contentPadding:
-                    EdgeInsets.symmetric(vertical: 16.0, horizontal: 1.0),
-                // Puedes personalizar el estilo de la etiqueta aquí si es necesario.
-              ),
-              value: selectedStatus,
-              onChanged: (WorkOrderUnit? newValue) {
-                setState(() {
-                  selectedStatus = newValue;
-                });
+              DropdownButtonFormField<WorkOrderUnit>(
+                decoration: const InputDecoration(
+                  labelText: 'Unit',
+                  border: OutlineInputBorder(),
+                  contentPadding:
+                      EdgeInsets.symmetric(vertical: 16.0, horizontal: 1.0),
+                  // Puedes personalizar el estilo de la etiqueta aquí si es necesario.
+                ),
+                value: selectedStatus,
+                onChanged: (WorkOrderUnit? newValue) {
+                  setState(() {
+                    selectedStatus = newValue;
+                  });
 
-                if (newValue != null) {
-                  fetchWorkOrderAssetList(newValue.woStatusId);
-                  // Cuando obtengas la lista de activos, selecciona el primero por defecto
-                  if (workOrderAssetList.isNotEmpty) {
-                    setState(() {
-                      selectedAsset = workOrderAssetList[0];
-                    });
-                  }
-                }
-              },
-              items: workOrderUnitList.map<DropdownMenuItem<WorkOrderUnit>>(
-                (WorkOrderUnit value) {
-                  return DropdownMenuItem<WorkOrderUnit>(
-                    value: value,
-                    child: Text(value.description),
-                  );
-                },
-              ).toList(),
-            ),
-            const SizedBox(height: 10),
-            DropdownButtonFormField<WorkOrderAsset>(
-              decoration: const InputDecoration(
-                labelText: 'Asset',
-                border: OutlineInputBorder(),
-                contentPadding:
-                    EdgeInsets.symmetric(vertical: 16.0, horizontal: 1.0),
-              ),
-              value: selectedAsset,
-              onChanged: (WorkOrderAsset? newValue) {
-                setState(() {
-                  selectedAsset = newValue;
-                });
-              },
-              items: workOrderAssetList.map<DropdownMenuItem<WorkOrderAsset>>(
-                (WorkOrderAsset value) {
-                  return DropdownMenuItem<WorkOrderAsset>(
-                    value: value,
-                    child: Text(value.AssetName),
-                  );
-                },
-              ).toList(),
-            ),
-            const SizedBox(height: 10),
-            DropdownButtonFormField<WorkOrderPriority>(
-              decoration: const InputDecoration(
-                labelText: 'Criticality',
-                border: OutlineInputBorder(),
-                contentPadding:
-                    EdgeInsets.symmetric(vertical: 16.0, horizontal: 1.0),
-              ),
-              value: selectedPriority,
-              onChanged: (WorkOrderPriority? newValue) {
-                setState(() {
-                  selectedPriority = newValue;
-                });
-              },
-              items: workOrderPriorityList
-                  .map<DropdownMenuItem<WorkOrderPriority>>(
-                (WorkOrderPriority value) {
-                  return DropdownMenuItem<WorkOrderPriority>(
-                    value: value,
-                    child: Text(value.priority),
-                  );
-                },
-              ).toList(),
-            ),
-            const SizedBox(height: 10),
-            TextFormField(
-              decoration: InputDecoration(
-                labelText: 'Select a Date',
-                border: OutlineInputBorder(),
-                hintText: 'Select a date',
-                suffixIcon: IconButton(
-                  icon: Icon(Icons.date_range),
-                  onPressed: () async {
-                    final DateTime? pickedDate = await showDatePicker(
-                      context: context,
-                      initialDate: DateTime.now(),
-                      firstDate: DateTime(2000),
-                      lastDate: DateTime(2101),
-                    );
-                    if (pickedDate != null && pickedDate != selectedDate) {
+                  if (newValue != null) {
+                    fetchWorkOrderAssetList(newValue.woStatusId);
+                    // Cuando obtengas la lista de activos, selecciona el primero por defecto
+                    if (workOrderAssetList.isNotEmpty) {
                       setState(() {
-                        selectedDate = pickedDate;
+                        selectedAsset = workOrderAssetList[0];
                       });
                     }
+                  }
+                },
+                items: workOrderUnitList.map<DropdownMenuItem<WorkOrderUnit>>(
+                  (WorkOrderUnit value) {
+                    return DropdownMenuItem<WorkOrderUnit>(
+                      value: value,
+                      child: Text(value.description),
+                    );
                   },
+                ).toList(),
+              ),
+              const SizedBox(height: 10),
+              DropdownButtonFormField<WorkOrderAsset>(
+                decoration: const InputDecoration(
+                  labelText: 'Asset',
+                  border: OutlineInputBorder(),
+                  contentPadding:
+                      EdgeInsets.symmetric(vertical: 16.0, horizontal: 1.0),
+                ),
+                value: selectedAsset,
+                onChanged: (WorkOrderAsset? newValue) {
+                  setState(() {
+                    selectedAsset = newValue;
+                  });
+                },
+                items: workOrderAssetList.map<DropdownMenuItem<WorkOrderAsset>>(
+                  (WorkOrderAsset value) {
+                    return DropdownMenuItem<WorkOrderAsset>(
+                      value: value,
+                      child: Text(value.AssetName),
+                    );
+                  },
+                ).toList(),
+              ),
+              const SizedBox(height: 10),
+              DropdownButtonFormField<WorkOrderPriority>(
+                decoration: const InputDecoration(
+                  labelText: 'Criticality',
+                  border: OutlineInputBorder(),
+                  contentPadding:
+                      EdgeInsets.symmetric(vertical: 16.0, horizontal: 1.0),
+                ),
+                value: selectedPriority,
+                onChanged: (WorkOrderPriority? newValue) {
+                  setState(() {
+                    selectedPriority = newValue;
+                  });
+                },
+                items: workOrderPriorityList
+                    .map<DropdownMenuItem<WorkOrderPriority>>(
+                  (WorkOrderPriority value) {
+                    return DropdownMenuItem<WorkOrderPriority>(
+                      value: value,
+                      child: Text(value.priority),
+                    );
+                  },
+                ).toList(),
+              ),
+              const SizedBox(height: 10),
+              TextFormField(
+                decoration: InputDecoration(
+                  labelText: 'Select a Date',
+                  border: OutlineInputBorder(),
+                  hintText: 'Select a date',
+                  suffixIcon: IconButton(
+                    icon: Icon(Icons.date_range),
+                    onPressed: () async {
+                      final DateTime? pickedDate = await showDatePicker(
+                        context: context,
+                        initialDate: DateTime.now(),
+                        firstDate: DateTime(2000),
+                        lastDate: DateTime(2101),
+                      );
+                      if (pickedDate != null && pickedDate != selectedDate) {
+                        setState(() {
+                          selectedDate = pickedDate;
+                        });
+                      }
+                    },
+                  ),
+                ),
+                readOnly:
+                    true, // Para evitar la edición manual del campo de fecha.
+                controller: TextEditingController(
+                  text: selectedDate != null
+                      ? DateFormat('yyyy-MM-dd').format(selectedDate!)
+                      : '',
                 ),
               ),
-              readOnly:
-                  true, // Para evitar la edición manual del campo de fecha.
-              controller: TextEditingController(
-                text: selectedDate != null
-                    ? DateFormat('yyyy-MM-dd').format(selectedDate!)
-                    : '',
+              const SizedBox(height: 10),
+              TextField(
+                maxLines: 4,
+                controller: problemController,
+                decoration: const InputDecoration(
+                  labelText: 'Problem',
+                  border: OutlineInputBorder(),
+                  hintText: 'Escribe aquí...',
+                ),
               ),
-            ),
-            const SizedBox(height: 10),
-            TextField(
-              maxLines: 4,
-              controller: problemController,
-              decoration: const InputDecoration(
-                labelText: 'Problem',
-                border: OutlineInputBorder(),
-                hintText: 'Escribe aquí...',
+              const SizedBox(height: 10),
+              MaterialButton(
+                color: Colors.blue,
+                onPressed: () {
+                  if (imageFileList!.length >= 5) {
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          title: const Text("Límite de imágenes alcanzado"),
+                          content: const Text(
+                              "No se pueden seleccionar más de 5 imágenes."),
+                          actions: <Widget>[
+                            TextButton(
+                              child: const Text("Cerrar"),
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  } else {
+                    selectImages();
+                  }
+                },
+                child: const Text('Select Multiple Images'),
               ),
-            ),
-            //jjjjjjjjkkkk
-            const SizedBox(height: 10),
-            MaterialButton(
-              color: Colors.blue,
-              onPressed: () {
-                if (imageFileList!.length >= 5) {
-                  showDialog(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return AlertDialog(
-                        title: const Text("Límite de imágenes alcanzado"),
-                        content: const Text(
-                            "No se pueden seleccionar más de 5 imágenes."),
-                        actions: <Widget>[
-                          TextButton(
-                            child: const Text("Cerrar"),
-                            onPressed: () {
-                              Navigator.of(context).pop();
-                            },
-                          ),
-                        ],
+
+              if (imageFileList!.isNotEmpty)
+                Container(
+                  height: 200, // Establece una altura máxima para el GridView
+                  child: GridView.builder(
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 3, // 3 columnas
+                    ),
+                    itemCount: imageFileList!.length,
+                    itemBuilder: (BuildContext context, int index) {
+                      return InkWell(
+                        onTap: () {
+                          removeImage(index);
+                        },
+                        child: Stack(
+                          children: [
+                            Image.file(
+                              File(imageFileList![index].path),
+                              fit: BoxFit.cover,
+                            ),
+                            const Positioned(
+                              top: 3,
+                              right: 3,
+                              child: Icon(
+                                Icons.close,
+                                color: Colors.red,
+                              ),
+                            ),
+                          ],
+                        ),
                       );
                     },
-                  );
-                } else {
-                  selectImages();
-                }
-              },
-              child: const Text('Select Multiple Images'),
-            ),
-            
-            if (imageFileList!.isNotEmpty)
-  Container(
-    height: 200, // Establece una altura máxima para el GridView
-    child: GridView.builder(
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3, // 3 columnas
-      ),
-      itemCount: imageFileList!.length,
-      itemBuilder: (BuildContext context, int index) {
-        return InkWell(
-          onTap: () {
-            removeImage(index);
-          },
-          child: Stack(
-            children: [
-              Image.file(
-                File(imageFileList![index].path),
-                fit: BoxFit.cover,
-              ),
-              const Positioned(
-                top: 3,
-                right: 3,
-                child: Icon(
-                  Icons.close,
-                  color: Colors.red,
+                  ),
+                ),
+
+              MaterialButton(
+                padding: const EdgeInsets.all(20),
+                minWidth: 5,
+                height: 50,
+                onPressed: () async {
+                  setState(() {
+                    problem = problemController.text;
+                  });
+                  /**  ---------  **/
+                  _uploadImageAndSaveOrder();
+                  /**  ---------  **/
+                },
+                color: const Color.fromARGB(255, 39, 17, 243),
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    SizedBox(width: 10),
+                    Text(
+                      'Guardar Work Order',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ],
                 ),
               ),
             ],
           ),
-        );
-      },
-    ),
-  ),
-              
-            MaterialButton(
-              padding: const EdgeInsets.all(20),
-              minWidth: 5,
-              height: 50,
-              onPressed: () async {
-                setState(() {
-                  problem = problemController.text;
-                });
-                /**  ---------  **/
-                _uploadImageAndSaveOrder();
-                /**  ---------  **/
-              },
-              color: const Color.fromARGB(255, 39, 17, 243),
-              child: const Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  SizedBox(width: 10),
-                  Text(
-                    'Guardar Work Order',
-                    style: TextStyle(color: Colors.white),
-                  ),
-                ],
-              ),
-            ),
-          ],
         ),
-      ),
         //jjkkjkkjk
       ),
     );
