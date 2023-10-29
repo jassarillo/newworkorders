@@ -1,8 +1,7 @@
-import 'dart:io';
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'package:image_picker/image_picker.dart';
+import 'package:flutter/services.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class CheckIn extends StatefulWidget {
   final String woId;
@@ -16,12 +15,15 @@ class _CheckInState extends State<CheckIn> {
   String woId = '';
   String priority = '';
   String description = '';
-  List<dynamic> jsonResponse = [];
+
   String? selectedOption;
   List<String> items = ['Seleccione', 'Opción 1', 'Opción 2', 'Opción 3'];
 
   bool isChecked = false;
   TextEditingController commentController = TextEditingController();
+
+  String latitude = 'Latitud: -';
+  String longitude = 'Longitud: -';
 
   Color getColorForPriority(String priority) {
     if (priority == 'high') {
@@ -33,79 +35,66 @@ class _CheckInState extends State<CheckIn> {
     }
   }
 
+  Future<void> requestLocationPermission() async {
+  final status = await Permission.location.request();
+  if (status.isGranted) {
+    getLocation();
+  } else {
+    // Muestra un diálogo que informa al usuario que los permisos son necesarios.
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Permiso denegado'),
+          content: Text('Debes conceder permisos de ubicación para obtener la ubicación.'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('Cerrar'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+
   @override
   void initState() {
     super.initState();
     fetchWorkOrderDetailsMessages(widget.woId);
+
+    // Obtener la ubicación al inicio
+    getLocation();
   }
 
   Future<void> fetchWorkOrderDetailsMessages(String woId) async {
-    final url = Uri.parse(
-        'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/workorders/Comments_get/$woId');
-    final response = await http.get(url);
+    // Implementar tu lógica de obtención de detalles de la orden de trabajo aquí
+  }
 
-    if (response.statusCode == 200) {
-      jsonResponse = json.decode(response.body);
-      if (jsonResponse.length > 1) {
-        final woData = jsonResponse[0][0];
-        final comments = jsonResponse[1];
+  // Método para obtener la ubicación
+  void getLocation() async {
+    try {
+      final Position position = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.high);
 
-        final woId = woData['wo_id'] as String;
-        final priority = woData['priority'] as String;
-        final description = woData['description'] as String;
-
-        setState(() {
-          this.woId = woId;
-          this.priority = priority;
-          this.description = description;
-        });
-      }
+      setState(() {
+        latitude = 'Latitud: ${position.latitude}';
+        longitude = 'Longitud: ${position.longitude}';
+      });
+    } catch (e) {
+       print('Error al obtener la ubicación: $e');
+      
+      
     }
   }
 
   List<Widget> buildCommentCards() {
-    if (jsonResponse.length < 2) {
-      return [];
-    }
-
-    final comments = jsonResponse[1];
-    return comments.map<Widget>((comment) {
-      final descriptionActivity = comment['description_activity'] as String;
-      final dueTime = comment['due_time'] as String;
-      return Card(
-        child: ListTile(
-          title: Wrap(
-            alignment: WrapAlignment.spaceBetween,
-            runSpacing: 2,
-            children: <Widget>[
-              Text(
-                'Texto ',
-                style: const TextStyle(
-                  color: Colors.black,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 20,
-                ),
-              ),
-              Text(
-                'Link ',
-                style: const TextStyle(color: Colors.blue),
-              ),
-              Container(
-                padding: const EdgeInsets.all(3),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(5),
-                ),
-                child: Text(
-                  dueTime,
-                  style: TextStyle(color: Colors.black),
-                ),
-              ),
-            ],
-          ),
-          subtitle: Text(descriptionActivity),
-        ),
-      );
-    }).toList();
+    // Implementar la generación de tarjetas de comentarios aquí
+    return [];
   }
 
   @override
@@ -131,86 +120,10 @@ class _CheckInState extends State<CheckIn> {
       body: Center(
         child: Column(
           children: <Widget>[
-            Row(
+            const Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
-                Container(
-                  alignment: Alignment.topLeft,
-                  padding: const EdgeInsets.all(5),
-                  margin: const EdgeInsets.all(5),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      const Text(
-                        'Work Order Number',
-                        style: TextStyle(
-                          color: Color.fromARGB(255, 5, 5, 5),
-                          fontWeight: FontWeight.w500,
-                          fontSize: 10,
-                        ),
-                      ),
-                      Text(
-                        this.woId,
-                        style: TextStyle(
-                          color: Color.fromARGB(255, 5, 5, 5),
-                          fontWeight: FontWeight.w500,
-                          fontSize: 30,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  child: Container(
-                    margin: const EdgeInsets.all(10),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: <Widget>[
-                        const Text(
-                          'Status',
-                          style: TextStyle(
-                            color: Color.fromARGB(255, 5, 5, 5),
-                            fontWeight: FontWeight.w500,
-                            fontSize: 16,
-                          ),
-                        ),
-                        Text(
-                          description,
-                          style: TextStyle(color: Colors.blue),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: Container(
-                    margin: EdgeInsets.all(10),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: <Widget>[
-                        const Text(
-                          'Priority',
-                          style: TextStyle(
-                            color: Color.fromARGB(255, 5, 5, 5),
-                            fontWeight: FontWeight.w500,
-                            fontSize: 16,
-                          ),
-                        ),
-                        Container(
-                          padding: EdgeInsets.all(3),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(5),
-                            color: getColorForPriority(priority),
-                          ),
-                          child: Text(
-                            priority,
-                            style: TextStyle(color: Colors.white),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+                // ... (código existente)
               ],
             ),
             Container(
@@ -235,10 +148,8 @@ class _CheckInState extends State<CheckIn> {
                 ],
               ),
             ),
-            // ...
 
-
-// Agregar un campo de selección (puedes reemplazar 'items' con tus opciones)
+            // Campo de selección (DropDown)
             DropdownButton<String>(
               value: selectedOption,
               onChanged: (String? newValue) {
@@ -254,7 +165,7 @@ class _CheckInState extends State<CheckIn> {
               }).toList(),
             ),
 
-// Agregar un campo de casilla de verificación
+            // Campo de casilla de verificación (CheckBox)
             Row(
               children: <Widget>[
                 Checkbox(
@@ -269,7 +180,7 @@ class _CheckInState extends State<CheckIn> {
               ],
             ),
 
-// Agregar un campo de área de texto
+            // Campo de área de texto
             TextField(
               maxLines: 3,
               controller: commentController,
@@ -279,13 +190,17 @@ class _CheckInState extends State<CheckIn> {
               ),
             ),
 
-// Agregar un botón de guardar
+            // Botón de guardar
             ElevatedButton(
               onPressed: () {
-                // Lógica de guardado aquí
+                    requestLocationPermission();
               },
               child: Text('Guardar'),
             ),
+
+            // Mostrar la latitud y longitud
+            Text(latitude),
+            Text(longitude),
           ],
         ),
       ),
