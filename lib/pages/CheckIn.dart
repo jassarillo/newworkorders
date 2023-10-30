@@ -1,5 +1,7 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:http/http.dart' as http;
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -15,9 +17,11 @@ class _CheckInState extends State<CheckIn> {
   String woId = '';
   String priority = '';
   String description = '';
+  List<String> dropdownItems = ['Seleccione'];
+  bool showCheckbox = false;
 
   String? selectedOption;
-  List<String> items = ['Seleccione', 'Opción 1', 'Opción 2', 'Opción 3'];
+  //List<String> items = ['Seleccione', 'Opción 1', 'Opción 2', 'Opción 3'];
 
   bool isChecked = false;
   TextEditingController commentController = TextEditingController();
@@ -35,39 +39,92 @@ class _CheckInState extends State<CheckIn> {
     }
   }
 
-  Future<void> requestLocationPermission() async {
-  final status = await Permission.location.request();
-  if (status.isGranted) {
-    getLocation();
-  } else {
-    // Muestra un diálogo que informa al usuario que los permisos son necesarios.
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text('Permiso denegado'),
-          content: Text('Debes conceder permisos de ubicación para obtener la ubicación.'),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text('Cerrar'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-}
+  Future<void> fetchDropdownItems() async {
+    final response = await http.get(Uri.parse(
+        'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/workorders/Shift_get/'));
 
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      if (data is List) {
+        final items = data[0] as List;
+        setState(() {
+          dropdownItems = items
+              .map<String>((item) => item['description'] as String)
+              .toList();
+        });
+      }
+    }
+  }
+
+  Future<void> requestLocationPermission() async {
+    final status = await Permission.location.request();
+    if (status.isGranted) {
+      getLocation();
+    } else {
+      // Muestra un diálogo que informa al usuario que los permisos son necesarios.
+      showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text('Permiso denegado'),
+            content: Text(
+                'Debes conceder permisos de ubicación para obtener la ubicación.'),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: Text('Cerrar'),
+              ),
+            ],
+          );
+        },
+      );
+    }
+  }
+
+  Future<void> getLocation() async {
+    try {
+      final Position position = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.high);
+      print(position.latitude);
+      print(position.longitude);
+      // Calcula la distancia entre la ubicación actual y la ubicación específica
+      double distanceInMeters = await Geolocator.distanceBetween(
+          position.latitude, position.longitude, 19.426314, -98.877709);
+// 
+      // print('Distancia a la ubicación específica: $distanceInMeters metros');
+      // showDialog(
+        // context: context,
+        // builder: (context) {
+          // return AlertDialog(
+            // title: const Text('Distancia'),
+            // content: Text('Estas a $distanceInMeters metros de la ubicacion'),
+            // actions: <Widget>[
+              // TextButton(
+                // onPressed: () {
+                  // Navigator.of(context).pop();
+                // },
+                // child: Text('Cerrar'),
+              // ),
+            // ],
+          // );
+        // },
+      // );
+      setState(() {
+        latitude = 'Latitud: ${position.latitude}';
+        longitude = 'Longitud: ${position.longitude}';
+      });
+    } catch (e) {
+      print('Error al obtener la ubicación: $e');
+    }
+  }
 
   @override
   void initState() {
     super.initState();
     fetchWorkOrderDetailsMessages(widget.woId);
-
-    // Obtener la ubicación al inicio
+    fetchDropdownItems();
     getLocation();
   }
 
@@ -76,7 +133,7 @@ class _CheckInState extends State<CheckIn> {
   }
 
   // Método para obtener la ubicación
-  void getLocation() async {
+  void fetchLocation() async {
     try {
       final Position position = await Geolocator.getCurrentPosition(
           desiredAccuracy: LocationAccuracy.high);
@@ -86,9 +143,7 @@ class _CheckInState extends State<CheckIn> {
         longitude = 'Longitud: ${position.longitude}';
       });
     } catch (e) {
-       print('Error al obtener la ubicación: $e');
-      
-      
+      print('Error al obtener la ubicación: $e');
     }
   }
 
@@ -118,6 +173,7 @@ class _CheckInState extends State<CheckIn> {
         ],
       ),
       body: Center(
+        
         child: Column(
           children: <Widget>[
             const Row(
@@ -148,39 +204,48 @@ class _CheckInState extends State<CheckIn> {
                 ],
               ),
             ),
-
-            // Campo de selección (DropDown)
-            DropdownButton<String>(
-              value: selectedOption,
-              onChanged: (String? newValue) {
-                setState(() {
-                  selectedOption = newValue;
-                });
-              },
-              items: items.map((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(value),
-                );
-              }).toList(),
-            ),
-
-            // Campo de casilla de verificación (CheckBox)
-            Row(
-              children: <Widget>[
-                Checkbox(
-                  value: isChecked,
-                  onChanged: (bool? value) {
-                    setState(() {
-                      isChecked = value!;
-                    });
-                  },
+            Container(
+              width: double.infinity,
+              margin: const EdgeInsets.all(10),
+              padding: EdgeInsets.symmetric(vertical: 16.0, horizontal: 1.0),
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: Colors.grey,
+                  width: 2.0,
                 ),
-                Text('Last visit'),
-              ],
+                borderRadius: BorderRadius.circular(5.0),
+              ),
+              child: DropdownButton<String>(
+                value: selectedOption,
+                onChanged: (String? newValue) {
+                  setState(() {
+                    selectedOption = newValue;
+                    // Verificar si la opción seleccionada es "id_shift": "4" para mostrar el Checkbox
+                    showCheckbox = (newValue == "id_shift: 4");
+                  });
+                },
+                items: dropdownItems.map((String value) {
+                  if (value == 'choice') {
+                    print(value);
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: SizedBox.shrink(),
+                    );
+                  } else {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value),
+                    );
+                  }
+                }).toList(),
+                icon: Icon(Icons.arrow_drop_down),
+                isDense: true,
+                underline: Container(),
+              ),
             ),
 
             // Campo de área de texto
+
             TextField(
               maxLines: 3,
               controller: commentController,
@@ -193,7 +258,7 @@ class _CheckInState extends State<CheckIn> {
             // Botón de guardar
             ElevatedButton(
               onPressed: () {
-                    requestLocationPermission();
+                requestLocationPermission();
               },
               child: Text('Guardar'),
             ),
