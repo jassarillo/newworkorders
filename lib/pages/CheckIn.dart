@@ -19,6 +19,7 @@ class _CheckInState extends State<CheckIn> {
   String description = '';
   List<String> dropdownItems = ['Seleccione'];
   bool showCheckbox = false;
+  List<dynamic> jsonResponse = [];
 
   String? selectedOption;
   //List<String> items = ['Seleccione', 'Opción 1', 'Opción 2', 'Opción 3'];
@@ -40,17 +41,22 @@ class _CheckInState extends State<CheckIn> {
   }
 
   Future<void> fetchDropdownItems() async {
-    final response = await http.get(Uri.parse(
-        'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/workorders/Shift_get/'));
+    final response = await http.get(
+      Uri.parse(
+          'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/workorders/Shift_get/'),
+    );
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
       if (data is List) {
         final items = data[0] as List;
         setState(() {
-          dropdownItems = items
-              .map<String>((item) => item['description'] as String)
-              .toList();
+          dropdownItems = items.map((item) {
+            final description = item['description'] as String;
+            final idShift = item['id_shift'].toString();
+            // Aquí concatenamos la descripción y el id_shift en un solo valor.
+            return "$description ($idShift)";
+          }).toList();
         });
       }
     }
@@ -62,24 +68,24 @@ class _CheckInState extends State<CheckIn> {
       getLocation();
     } else {
       // Muestra un diálogo que informa al usuario que los permisos son necesarios.
-      showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            title: Text('Permiso denegado'),
-            content: Text(
-                'Debes conceder permisos de ubicación para obtener la ubicación.'),
-            actions: <Widget>[
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-                child: Text('Cerrar'),
-              ),
-            ],
-          );
-        },
-      );
+      // showDialog(
+        // context: context,
+        // builder: (context) {
+          // return AlertDialog(
+            // title: Text('Permiso denegado'),
+            // content: Text(
+                // 'Debes conceder permisos de ubicación para obtener la ubicación.'),
+            // actions: <Widget>[
+              // TextButton(
+                // onPressed: () {
+                  // Navigator.of(context).pop();
+                // },
+                // child: Text('Cerrar'),
+              // ),
+            // ],
+          // );
+        // },
+      // );
     }
   }
 
@@ -92,25 +98,25 @@ class _CheckInState extends State<CheckIn> {
       // Calcula la distancia entre la ubicación actual y la ubicación específica
       double distanceInMeters = await Geolocator.distanceBetween(
           position.latitude, position.longitude, 19.426314, -98.877709);
-// 
+
       // print('Distancia a la ubicación específica: $distanceInMeters metros');
-      // showDialog(
-        // context: context,
-        // builder: (context) {
-          // return AlertDialog(
-            // title: const Text('Distancia'),
-            // content: Text('Estas a $distanceInMeters metros de la ubicacion'),
-            // actions: <Widget>[
-              // TextButton(
-                // onPressed: () {
-                  // Navigator.of(context).pop();
-                // },
-                // child: Text('Cerrar'),
-              // ),
-            // ],
-          // );
-        // },
-      // );
+      showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: const Text('Distancia'),
+            content: Text('Estas a $distanceInMeters metros de la ubicacion'),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: Text('Cerrar'),
+              ),
+            ],
+          );
+        },
+      );
       setState(() {
         latitude = 'Latitud: ${position.latitude}';
         longitude = 'Longitud: ${position.longitude}';
@@ -126,6 +132,7 @@ class _CheckInState extends State<CheckIn> {
     fetchWorkOrderDetailsMessages(widget.woId);
     fetchDropdownItems();
     getLocation();
+    fetchWorkOrderDetailsHeader(widget.woId);
   }
 
   Future<void> fetchWorkOrderDetailsMessages(String woId) async {
@@ -152,6 +159,27 @@ class _CheckInState extends State<CheckIn> {
     return [];
   }
 
+  Future<void> fetchWorkOrderDetailsHeader(String woId) async {
+    final url = Uri.parse(
+        'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/workorders/Comments_get/$woId');
+    final response = await http.get(url);
+    if (response.statusCode == 200) {
+      jsonResponse = json.decode(response.body);
+      if (jsonResponse.length > 1) {
+        final woData = jsonResponse[0][0];
+        final comments = jsonResponse[1];
+        final woId = woData['wo_id'] as String;
+        final priority = woData['priority'] as String;
+        final description = woData['description'] as String;
+        setState(() {
+          this.woId = woId;
+          this.priority = priority;
+          this.description = description;
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -173,13 +201,88 @@ class _CheckInState extends State<CheckIn> {
         ],
       ),
       body: Center(
-        
         child: Column(
           children: <Widget>[
-            const Row(
+            Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
-                // ... (código existente)
+                Container(
+                  alignment: Alignment.topLeft,
+                  padding: const EdgeInsets.all(5),
+                  margin: const EdgeInsets.all(5),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      const Text(
+                        'Work Order Number',
+                        style: TextStyle(
+                          color: Color.fromARGB(255, 5, 5, 5),
+                          fontWeight: FontWeight.w500,
+                          fontSize: 10,
+                        ),
+                      ),
+                      Text(
+                        this.woId,
+                        style: TextStyle(
+                          color: Color.fromARGB(255, 5, 5, 5),
+                          fontWeight: FontWeight.w500,
+                          fontSize: 30,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: Container(
+                    margin: const EdgeInsets.all(10),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: <Widget>[
+                        const Text(
+                          'Status',
+                          style: TextStyle(
+                            color: Color.fromARGB(255, 5, 5, 5),
+                            fontWeight: FontWeight.w500,
+                            fontSize: 16,
+                          ),
+                        ),
+                        Text(
+                          description,
+                          style: TextStyle(color: Colors.blue),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Container(
+                    margin: EdgeInsets.all(10),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: <Widget>[
+                        const Text(
+                          'Priority',
+                          style: TextStyle(
+                            color: Color.fromARGB(255, 5, 5, 5),
+                            fontWeight: FontWeight.w500,
+                            fontSize: 16,
+                          ),
+                        ),
+                        Container(
+                          padding: EdgeInsets.all(3),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(5),
+                            color: getColorForPriority(priority),
+                          ),
+                          child: Text(
+                            priority,
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               ],
             ),
             Container(
@@ -220,8 +323,10 @@ class _CheckInState extends State<CheckIn> {
                 onChanged: (String? newValue) {
                   setState(() {
                     selectedOption = newValue;
-                    // Verificar si la opción seleccionada es "id_shift": "4" para mostrar el Checkbox
-                    showCheckbox = (newValue == "id_shift: 4");
+                    print(newValue);
+                    // Verificar si la opción seleccionada contiene "(4)" para mostrar el Checkbox
+                    showCheckbox =
+                        (newValue != null && newValue.contains(" (4)"));
                   });
                 },
                 items: dropdownItems.map((String value) {
@@ -244,7 +349,21 @@ class _CheckInState extends State<CheckIn> {
               ),
             ),
 
-            // Campo de área de texto
+            // Mostrar el Checkbox si showCheckbox es verdadero
+            if (showCheckbox)
+              Row(
+                children: <Widget>[
+                  Checkbox(
+                    value: isChecked,
+                    onChanged: (bool? value) {
+                      setState(() {
+                        isChecked = value!;
+                      });
+                    },
+                  ),
+                  Text('Last visit'),
+                ],
+              ),
 
             TextField(
               maxLines: 3,
