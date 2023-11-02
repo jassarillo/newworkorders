@@ -1,6 +1,8 @@
 import 'pages/WorkOrders.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:geolocator/geolocator.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 void main() => runApp(const MyApp());
 
@@ -31,7 +33,8 @@ class MyStatefulWidget extends StatefulWidget {
 class _MyStatefulWidgetState extends State<MyStatefulWidget> {
   TextEditingController emailController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
-
+  String latitude = 'Latitud: -';
+  String longitude = 'Longitud: -';
   void login(String email, password) async {
     try {
       http.Response response = await http.post(
@@ -75,6 +78,56 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
       }
     } catch (e) {
       print("Error: ${e.toString()}");
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    //getLocation();
+    requestLocationPermission();
+  }
+
+  Future<void> requestLocationPermission() async {
+    final status = await Permission.location.request();
+    if (status.isGranted) {
+      getLocation();
+    } else {
+      showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text('Permiso denegado'),
+            content: Text(
+                'Debes conceder permisos de ubicación para obtener la ubicación.'),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: Text('Cerrar'),
+              ),
+            ],
+          );
+        },
+      );
+    }
+  }
+
+  Future<void> getLocation() async {
+    try {
+      final Position position = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.high);
+      //print(position.latitude);
+      //print(position.longitude);
+      //double distanceInMeters = await Geolocator.distanceBetween(
+          //position.latitude, position.longitude, 19.426314, -98.877709);
+      setState(() {
+        latitude = 'Latitud: ${position.latitude}';
+        longitude = 'Longitud: ${position.longitude}';
+      });
+    } catch (e) {
+      print('Error al obtener la ubicación: $e');
     }
   }
 
@@ -142,14 +195,14 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
 
             const Row(
               mainAxisAlignment: MainAxisAlignment.center,
-              children:  <Widget>[
+              children: <Widget>[
                 Text('For registration or password recovery.'),
               ],
             ),
             const SizedBox(height: 16), // Agrega espacio vertical de 16 puntos
-         const   Row(
+            const Row(
               mainAxisAlignment: MainAxisAlignment.center,
-              children:  <Widget>[
+              children: <Widget>[
                 Text('contact us 587 4574'),
               ],
             ),

@@ -13,6 +13,13 @@ class CheckIn extends StatefulWidget {
   State<CheckIn> createState() => _CheckInState();
 }
 
+class WorkOrderUnit {
+  final String description;
+  final String idShift;
+
+  WorkOrderUnit(this.description, this.idShift);
+}
+
 class _CheckInState extends State<CheckIn> {
   String woId = '';
   String priority = '';
@@ -20,9 +27,9 @@ class _CheckInState extends State<CheckIn> {
   List<String> dropdownItems = ['Seleccione'];
   bool showCheckbox = false;
   List<dynamic> jsonResponse = [];
+  List<WorkOrderUnit> workOrderUnitList = [WorkOrderUnit('Seleccione', '0')];
 
-  String? selectedOption;
-  //List<String> items = ['Seleccione', 'Opción 1', 'Opción 2', 'Opción 3'];
+  WorkOrderUnit? selectedOption;
 
   bool isChecked = false;
   TextEditingController commentController = TextEditingController();
@@ -50,13 +57,14 @@ class _CheckInState extends State<CheckIn> {
       final data = json.decode(response.body);
       if (data is List) {
         final items = data[0] as List;
+        final workOrderUnits = items.map((item) {
+          final description = item['description'] as String;
+          final idShift = item['id_shift'].toString();
+          return WorkOrderUnit(description, idShift);
+        }).toList();
+
         setState(() {
-          dropdownItems = items.map((item) {
-            final description = item['description'] as String;
-            final idShift = item['id_shift'].toString();
-            // Aquí concatenamos la descripción y el id_shift en un solo valor.
-            return "$description ($idShift)";
-          }).toList();
+          workOrderUnitList = workOrderUnits;
         });
       }
     }
@@ -67,25 +75,24 @@ class _CheckInState extends State<CheckIn> {
     if (status.isGranted) {
       getLocation();
     } else {
-      // Muestra un diálogo que informa al usuario que los permisos son necesarios.
-      // showDialog(
-        // context: context,
-        // builder: (context) {
-          // return AlertDialog(
-            // title: Text('Permiso denegado'),
-            // content: Text(
-                // 'Debes conceder permisos de ubicación para obtener la ubicación.'),
-            // actions: <Widget>[
-              // TextButton(
-                // onPressed: () {
-                  // Navigator.of(context).pop();
-                // },
-                // child: Text('Cerrar'),
-              // ),
-            // ],
-          // );
-        // },
-      // );
+      showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text('Permiso denegado'),
+            content: Text(
+                'Debes conceder permisos de ubicación para obtener la ubicación.'),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: Text('Cerrar'),
+              ),
+            ],
+          );
+        },
+      );
     }
   }
 
@@ -99,24 +106,6 @@ class _CheckInState extends State<CheckIn> {
       double distanceInMeters = await Geolocator.distanceBetween(
           position.latitude, position.longitude, 19.426314, -98.877709);
 
-      // print('Distancia a la ubicación específica: $distanceInMeters metros');
-      showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            title: const Text('Distancia'),
-            content: Text('Estas a $distanceInMeters metros de la ubicacion'),
-            actions: <Widget>[
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-                child: Text('Cerrar'),
-              ),
-            ],
-          );
-        },
-      );
       setState(() {
         latitude = 'Latitud: ${position.latitude}';
         longitude = 'Longitud: ${position.longitude}';
@@ -179,6 +168,39 @@ class _CheckInState extends State<CheckIn> {
       }
     }
   }
+
+Future<void> submitForm() async {
+  final Map<String, dynamic> formData = {
+    'woId': woId, // Agregamos el campo woId
+    'shift': {
+      'description': selectedOption?.description,
+      'idShift': selectedOption?.idShift,
+    },
+    'id_shift': selectedOption?.idShift,
+    'checkboxValue': isChecked,
+    'comment': commentController.text,
+    'latitude': latitude,
+    'longitude': longitude,
+  };
+
+  final response = await http.post(
+    Uri.parse(
+        'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/workorders/Check_in_post'),
+    headers: <String, String>{
+      'Content-Type': 'application/json; charset=UTF-8',
+    },
+    body: jsonEncode(formData),
+  );
+  //print(formData);
+  print(response.body);
+  //print(json.decode(response.body));
+  if (response.statusCode == 200) {
+    // El envío de datos fue exitoso, puedes realizar alguna acción adicional aquí si es necesario.
+  } else {
+    // Hubo un error en la solicitud, puedes manejarlo de acuerdo a tus necesidades.
+  }
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -307,51 +329,36 @@ class _CheckInState extends State<CheckIn> {
                 ],
               ),
             ),
-            Container(
-              width: double.infinity,
-              margin: const EdgeInsets.all(10),
-              padding: EdgeInsets.symmetric(vertical: 16.0, horizontal: 1.0),
-              decoration: BoxDecoration(
-                border: Border.all(
-                  color: Colors.grey,
-                  width: 2.0,
-                ),
-                borderRadius: BorderRadius.circular(5.0),
+
+            DropdownButtonFormField<WorkOrderUnit>(
+              decoration: const InputDecoration(
+                labelText: 'Seleccione',
+                border: OutlineInputBorder(),
+                contentPadding:
+                    EdgeInsets.symmetric(vertical: 16.0, horizontal: 1.0),
               ),
-              child: DropdownButton<String>(
-                value: selectedOption,
-                onChanged: (String? newValue) {
-                  setState(() {
-                    selectedOption = newValue;
-                    print(newValue);
-                    // Verificar si la opción seleccionada contiene "(4)" para mostrar el Checkbox
-                    showCheckbox =
-                        (newValue != null && newValue.contains(" (4)"));
-                  });
+              value: selectedOption,
+              onChanged: (WorkOrderUnit? newValue) {
+                setState(() {
+                  selectedOption = newValue;
+                  // Verificar si la opción seleccionada contiene "4" para mostrar el Checkbox
+                  showCheckbox = (newValue != null && newValue.idShift == "4");
+                });
+              },
+              items: workOrderUnitList.map<DropdownMenuItem<WorkOrderUnit>>(
+                (WorkOrderUnit value) {
+                  return DropdownMenuItem<WorkOrderUnit>(
+                    value: value,
+                    child: Text(value.description),
+                  );
                 },
-                items: dropdownItems.map((String value) {
-                  if (value == 'choice') {
-                    print(value);
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: SizedBox.shrink(),
-                    );
-                  } else {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(value),
-                    );
-                  }
-                }).toList(),
-                icon: Icon(Icons.arrow_drop_down),
-                isDense: true,
-                underline: Container(),
-              ),
+              ).toList(),
             ),
 
             // Mostrar el Checkbox si showCheckbox es verdadero
-            if (showCheckbox)
-              Row(
+            Visibility(
+              visible: showCheckbox,
+              child: Row(
                 children: <Widget>[
                   Checkbox(
                     value: isChecked,
@@ -364,6 +371,7 @@ class _CheckInState extends State<CheckIn> {
                   Text('Last visit'),
                 ],
               ),
+            ),
 
             TextField(
               maxLines: 3,
@@ -378,8 +386,9 @@ class _CheckInState extends State<CheckIn> {
             ElevatedButton(
               onPressed: () {
                 requestLocationPermission();
+                submitForm();
               },
-              child: Text('Guardar'),
+              child: Text('Punch In'),
             ),
 
             // Mostrar la latitud y longitud
