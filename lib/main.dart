@@ -44,10 +44,10 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
             'username': email,
             'password': password,
           });
-      Navigator.push(
+      /*Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => const WorkOrders()),
-      );
+      );*/
       print(response.body);
       if (response.body == '"200"') {
         // ignore: use_build_context_synchronously
@@ -56,19 +56,19 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
           MaterialPageRoute(builder: (context) => const WorkOrders()),
         );
       } else {
-        const errorMessage = "Usuario o contraseña incorrectos.";
+        const errorMessage = "User or password failed.";
 
         showDialog(
           context: context,
           builder: (BuildContext context) {
             return AlertDialog(
-              title: const Text("Error de inicio de sesión"),
+              title: const Text("Access Error"),
               content: const Text(errorMessage),
               actions: <Widget>[
                 TextButton(
-                  child: const Text("Aceptar"),
+                  child: const Text("Accept"),
                   onPressed: () {
-                    Navigator.of(context).pop(); // Cierra el AlertDialog.
+                    Navigator.of(context).pop(); 
                   },
                 ),
               ],

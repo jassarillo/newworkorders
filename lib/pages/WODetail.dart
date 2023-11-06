@@ -3,6 +3,7 @@ import 'CheckIn.dart';
 import 'Comments.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+
 class WODetail extends StatefulWidget {
   final String woId;
   final String priority;
@@ -34,12 +35,14 @@ Color getColorForPriority(String priority) {
 
 Future<Map<String, dynamic>> fetchWorkOrderDetails(String woId) async {
   final url = Uri.parse(
-      'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/workorders/Wo_get/$woId');
+      'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/workorders/Wo_get/$woId/4');
   final response = await http.get(url);
-
+  print('$woId');
+  print(response.body);
   if (response.statusCode == 200) {
     final jsonResponse = json.decode(response.body);
     if (jsonResponse is List && jsonResponse.isNotEmpty) {
+      print(jsonResponse[0]);
       return jsonResponse[0];
     }
   }
@@ -332,43 +335,43 @@ class _WODetailState extends State<WODetail> {
                   ],
                 ),
                 const SizedBox(height: 10),
-                InkWell(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => Comments(woId: woId),
-                      ),
-                    );
-                  },
-                  child: const Card(
-                    child: ListTile(
-                      leading: Icon(
-                        Icons.comment,
-                        color: Color.fromARGB(255, 124, 122, 122),
-                      ),
-                      title: Wrap(
-                        alignment: WrapAlignment.spaceBetween,
-                        runSpacing: 2,
-                        children: <Widget>[
-                          Text(
-                            'Comments',
-                            style: TextStyle(
-                              color: Colors.black,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 20,
-                            ),
-                          ),
-                        ],
-                      ),
-                      subtitle: Text('woDescription ccdcd'),
-                      trailing: Icon(
-                        Icons.arrow_forward,
-                        color: Color.fromARGB(255, 124, 122, 122),
-                      ),
-                    ),
-                  ),
-                ),
+                // InkWell(
+                  // onTap: () {
+                    // Navigator.push(
+                      // context,
+                      // MaterialPageRoute(
+                        // builder: (context) => Comments(woId: woId),
+                      // ),
+                    // );
+                  // },
+                  // child: const Card(
+                    // child: ListTile(
+                      // leading: Icon(
+                        // Icons.comment,
+                        // color: Color.fromARGB(255, 124, 122, 122),
+                      // ),
+                      // title: Wrap(
+                        // alignment: WrapAlignment.spaceBetween,
+                        // runSpacing: 2,
+                        // children: <Widget>[
+                          // Text(
+                            // 'Comments',
+                            // style: TextStyle(
+                              // color: Colors.black,
+                              // fontWeight: FontWeight.bold,
+                              // fontSize: 20,
+                            // ),
+                          // ),
+                        // ],
+                      // ),
+                      // subtitle: Text('woDescription ccdcd'),
+                      // trailing: Icon(
+                        // Icons.arrow_forward,
+                        // color: Color.fromARGB(255, 124, 122, 122),
+                      // ),
+                    // ),
+                  // ),
+                // ),
                 const SizedBox(height: 10),
                 MaterialButton(
                   padding: const EdgeInsets.all(5),
@@ -378,7 +381,7 @@ class _WODetailState extends State<WODetail> {
                     Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) =>  CheckIn(woId: woId)));
+                            builder: (context) => CheckIn(woId: woId)));
                   },
                   color: const Color.fromARGB(255, 39, 17, 243),
                   child: const Row(

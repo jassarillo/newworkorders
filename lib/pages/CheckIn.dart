@@ -106,6 +106,8 @@ class _CheckInState extends State<CheckIn> {
       double distanceInMeters = await Geolocator.distanceBetween(
           position.latitude, position.longitude, 19.426314, -98.877709);
 
+    print('Distancia aproximada: $distanceInMeters metros');
+
       setState(() {
         latitude = 'Latitud: ${position.latitude}';
         longitude = 'Longitud: ${position.longitude}';
@@ -169,35 +171,94 @@ class _CheckInState extends State<CheckIn> {
     }
   }
 
-Future<void> submitForm() async {
-  final Map<String, dynamic> formData = {
-    'woId': woId, // Agregamos el campo woId
-    'shift': {
-      'description': selectedOption?.description,
-      'idShift': selectedOption?.idShift,
-    },
-    'id_shift': selectedOption?.idShift,
-    'checkboxValue': isChecked,
-    'comment': commentController.text,
-    'latitude': latitude,
-    'longitude': longitude,
-  };
+  Future<void> submitForm() async {
+  try {
+    final Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high);
+    double distanceInMeters = await Geolocator.distanceBetween(
+        position.latitude, position.longitude, 19.426314, -98.877709);
 
-  final response = await http.post(
-    Uri.parse(
-        'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/workorders/Check_in_post'),
-    headers: <String, String>{
-      'Content-Type': 'application/json; charset=UTF-8',
-    },
-    body: jsonEncode(formData),
-  );
-  //print(formData);
-  print(response.body);
-  //print(json.decode(response.body));
-  if (response.statusCode == 200) {
-    // El envío de datos fue exitoso, puedes realizar alguna acción adicional aquí si es necesario.
-  } else {
-    // Hubo un error en la solicitud, puedes manejarlo de acuerdo a tus necesidades.
+    final Map<String, dynamic> formData = {
+      'woId': woId, // Agregamos el campo woId
+      'shift': {
+        'description': selectedOption?.description,
+        'idShift': selectedOption?.idShift,
+      },
+      'id_shift': selectedOption?.idShift,
+      'checkboxValue': isChecked,
+      'comment': commentController.text,
+      'latitude': latitude,
+      'longitude': longitude,
+      'proximity': distanceInMeters.toString(), // Convertimos a String
+    };
+
+    final response = await http.post(
+      Uri.parse(
+          'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/workorders/Check_in_post'),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode(formData),
+    );
+    //print(formData);
+    //print(response.body);
+
+    if (response.statusCode == 200) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text("Success!"),
+            content: const Text("Successful registration."),
+            actions: <Widget>[
+              TextButton(
+                child: const Text("Aceptar"),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
+    } else {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text("Error"),
+            content: const Text("Failed registration."),
+            actions: <Widget>[
+              TextButton(
+                child: const Text("Accept"),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
+    }
+  } catch (e) {
+    print('Error: $e');
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("Error"),
+          content: const Text("An error occurred."),
+          actions: <Widget>[
+            TextButton(
+              child: const Text("Accept"),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 }
 
@@ -307,93 +368,99 @@ Future<void> submitForm() async {
                 ),
               ],
             ),
-            Container(
-              alignment: Alignment.topLeft,
-              padding: const EdgeInsets.all(10),
-              margin: const EdgeInsets.all(10),
-              child: const Row(
+            SingleChildScrollView(
+              child: Column(
                 children: <Widget>[
-                  Icon(
-                    Icons.access_time,
-                    color: Colors.grey,
-                  ),
-                  SizedBox(width: 10),
-                  Text(
-                    'CHECK IN',
-                    style: TextStyle(
-                      color: Colors.black,
-                      fontWeight: FontWeight.w500,
-                      fontSize: 30,
+                  SingleChildScrollView(
+                    child: Column(
+                      children: <Widget>[
+                        Container(
+                          alignment: Alignment.topLeft,
+                          padding: const EdgeInsets.all(10),
+                          margin: const EdgeInsets.all(10),
+                          child: const Row(
+                            children: <Widget>[
+                              Icon(
+                                Icons.access_time,
+                                color: Colors.grey,
+                              ),
+                              SizedBox(width: 10),
+                              Text(
+                                'CHECK IN',
+                                style: TextStyle(
+                                  color: Colors.black,
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 30,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        DropdownButtonFormField<WorkOrderUnit>(
+                          decoration: const InputDecoration(
+                            labelText: 'Seleccione',
+                            border: OutlineInputBorder(),
+                            contentPadding: EdgeInsets.symmetric(
+                                vertical: 16.0, horizontal: 1.0),
+                          ),
+                          value: selectedOption,
+                          onChanged: (WorkOrderUnit? newValue) {
+                            setState(() {
+                              selectedOption = newValue;
+                              showCheckbox =
+                                  (newValue != null && newValue.idShift == "4");
+                            });
+                          },
+                          items: workOrderUnitList
+                              .map<DropdownMenuItem<WorkOrderUnit>>(
+                            (WorkOrderUnit value) {
+                              return DropdownMenuItem<WorkOrderUnit>(
+                                value: value,
+                                child: Text(value.description),
+                              );
+                            },
+                          ).toList(),
+                        ),
+                        Visibility(
+                          visible: showCheckbox,
+                          child: Row(
+                            children: <Widget>[
+                              Checkbox(
+                                value: isChecked,
+                                onChanged: (bool? value) {
+                                  setState(() {
+                                    isChecked = value!;
+                                  });
+                                },
+                              ),
+                              Text('Last visit'),
+                            ],
+                          ),
+                        ),
+                        TextField(
+                          maxLines: 3,
+                          controller: commentController,
+                          decoration: InputDecoration(
+                            labelText: 'Write a comment',
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                        ElevatedButton(
+                          onPressed: () {
+                            requestLocationPermission();
+                            submitForm();
+                          },
+                          child: Text('Punch In'),
+                        ),
+                        /*Text(latitude),
+                        Text(longitude),*/
+                        // Agregar otros widgets que desees dentro del SingleChildScrollView
+                      ],
                     ),
                   ),
                 ],
               ),
             ),
-
-            DropdownButtonFormField<WorkOrderUnit>(
-              decoration: const InputDecoration(
-                labelText: 'Seleccione',
-                border: OutlineInputBorder(),
-                contentPadding:
-                    EdgeInsets.symmetric(vertical: 16.0, horizontal: 1.0),
-              ),
-              value: selectedOption,
-              onChanged: (WorkOrderUnit? newValue) {
-                setState(() {
-                  selectedOption = newValue;
-                  // Verificar si la opción seleccionada contiene "4" para mostrar el Checkbox
-                  showCheckbox = (newValue != null && newValue.idShift == "4");
-                });
-              },
-              items: workOrderUnitList.map<DropdownMenuItem<WorkOrderUnit>>(
-                (WorkOrderUnit value) {
-                  return DropdownMenuItem<WorkOrderUnit>(
-                    value: value,
-                    child: Text(value.description),
-                  );
-                },
-              ).toList(),
-            ),
-
-            // Mostrar el Checkbox si showCheckbox es verdadero
-            Visibility(
-              visible: showCheckbox,
-              child: Row(
-                children: <Widget>[
-                  Checkbox(
-                    value: isChecked,
-                    onChanged: (bool? value) {
-                      setState(() {
-                        isChecked = value!;
-                      });
-                    },
-                  ),
-                  Text('Last visit'),
-                ],
-              ),
-            ),
-
-            TextField(
-              maxLines: 3,
-              controller: commentController,
-              decoration: InputDecoration(
-                labelText: 'Write a comment',
-                border: OutlineInputBorder(),
-              ),
-            ),
-
-            // Botón de guardar
-            ElevatedButton(
-              onPressed: () {
-                requestLocationPermission();
-                submitForm();
-              },
-              child: Text('Punch In'),
-            ),
-
-            // Mostrar la latitud y longitud
-            Text(latitude),
-            Text(longitude),
           ],
         ),
       ),
