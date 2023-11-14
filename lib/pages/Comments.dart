@@ -36,7 +36,8 @@ class _CommentsState extends State<Comments> {
 
   Future<void> fetchWorkOrderDetailsMessages(String woId) async {
     final url = Uri.parse(
-        'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/workorders/Comments_get/$woId');
+        //'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/workorders/Comments_get/$woId');
+        'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/workorders/Comments_get/0');
     final response = await http.get(url);
 
     if (response.statusCode == 200) {
@@ -125,7 +126,6 @@ class _CommentsState extends State<Comments> {
         ],
       ),
       body: Center(
-        child: SingleChildScrollView(
           child: Column(
             children: <Widget>[
               Row(
@@ -233,13 +233,20 @@ class _CommentsState extends State<Comments> {
                   ],
                 ),
               ),
-              Column(
-                children: buildCommentCards(),
+             
+              Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  children: buildCommentCards(),
+                ),
               ),
+            ),
+
+
             ],
           ),
         ),
-      ),
+      
     );
   }
 }

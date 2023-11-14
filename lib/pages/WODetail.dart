@@ -38,12 +38,12 @@ Future<Map<String, dynamic>> fetchWorkOrderDetails(String woId) async {
   final url = Uri.parse(
       'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/workorders/Wo_get/$woId/4');
   final response = await http.get(url);
-  print('$woId');
-  print(response.body);
+  //print('$woId');
+  //print(response.body);
   if (response.statusCode == 200) {
     final jsonResponse = json.decode(response.body);
     if (jsonResponse is List && jsonResponse.isNotEmpty) {
-      print(jsonResponse[0]);
+      //print(jsonResponse[0]);
       return jsonResponse[0];
     }
   }
@@ -371,33 +371,41 @@ class _WODetailState extends State<WODetail> {
                       ),
                     );
                   },
-                  child: const Card(
-                    child: ListTile(
-                      leading: Icon(
-                        Icons.comment,
-                        color: Color.fromARGB(255, 124, 122, 122),
-                      ),
-                      title: Wrap(
-                        alignment: WrapAlignment.spaceBetween,
-                        runSpacing: 2,
-                        children: <Widget>[
-                          Text(
-                            'Quotation',
-                            style: TextStyle(
-                              color: Colors.black,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 20,
-                            ),
-                          ),
-                        ],
-                      ),
-                      subtitle: Text('Reported quotatios'),
-                      trailing: Icon(
-                        Icons.arrow_forward,
-                        color: Color.fromARGB(255, 124, 122, 122),
-                      ),
-                    ),
-                  ),
+            child: Card(
+  child: ListTile(
+    leading: Container(
+      padding: EdgeInsets.all(8.0),
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: Colors.grey,
+      ),
+      child: Icon(
+        Icons.attach_money,
+        color: Colors.white,
+      ),
+    ),
+    title: Wrap(
+      alignment: WrapAlignment.spaceBetween,
+      runSpacing: 2,
+      children: <Widget>[
+        Text(
+          'Quotation',
+          style: TextStyle(
+            color: Colors.black,
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+          ),
+        ),
+      ],
+    ),
+    subtitle: Text('Reported quotations'),
+    trailing: Icon(
+      Icons.arrow_forward,
+      color: Color.fromARGB(255, 124, 122, 122),
+    ),
+  ),
+),
+
                 ),
                       InkWell(
         onTap: () {
@@ -448,7 +456,7 @@ class _WODetailState extends State<WODetail> {
         child: const Card(
           child: ListTile(
             leading: Icon(
-              Icons.comment,
+              Icons.list,
               color: Color.fromARGB(255, 124, 122, 122),
             ),
             title: Wrap(
@@ -485,7 +493,7 @@ class _WODetailState extends State<WODetail> {
         child: const Card(
           child: ListTile(
             leading: Icon(
-              Icons.comment,
+              Icons.person,
               color: Color.fromARGB(255, 124, 122, 122),
             ),
             title: Wrap(

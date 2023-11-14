@@ -1,8 +1,6 @@
-import 'dart:io';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:image_picker/image_picker.dart';
 
 class TroubleShooting extends StatefulWidget {
   final String woId;
@@ -17,6 +15,7 @@ class _TroubleShootingState extends State<TroubleShooting> {
   String priority = '';
   String description = '';
   List<dynamic> jsonResponse = [];
+  List<dynamic> jsonResponseCheck = [];
 
   Color getColorForPriority(String priority) {
     if (priority == 'high') {
@@ -32,22 +31,20 @@ class _TroubleShootingState extends State<TroubleShooting> {
   void initState() {
     super.initState();
     fetchWorkOrderDetailsMessages(widget.woId);
+    fetchtroubleShooting(widget.woId);
   }
 
   Future<void> fetchWorkOrderDetailsMessages(String woId) async {
     final url = Uri.parse(
-        'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/workorders/Comments_get/$woId');
+        // 'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/workorders/Comments_get/$woId');
+        'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/workorders/Comments_get/0');
     final response = await http.get(url);
 
     if (response.statusCode == 200) {
       jsonResponse = json.decode(response.body);
       if (jsonResponse.length > 1) {
         final woData = jsonResponse[0][0];
-        final comments = jsonResponse[1];
-
-        final woId = woData['wo_id'] as String;
-        final priority = woData['priority'] as String;
-        final description = woData['description'] as String;
+        // final comments = jsonResponse[1];
 
         setState(() {
           this.woId = woId;
@@ -57,51 +54,95 @@ class _TroubleShootingState extends State<TroubleShooting> {
       }
     }
   }
+Future<void> fetchtroubleShooting(String woId) async {
+  final url = Uri.parse(
+      'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/workorders/Shift_get/');
+  final response = await http.get(url);
+  print(response);
+  if (response.statusCode == 200) {
+    final dynamic decodedResponse = json.decode(response.body);
 
-  List<Widget> buildCommentCards() {
-    if (jsonResponse.length < 2) {
-      return [];
-    }
-
-    final comments = jsonResponse[1];
-    return comments.map<Widget>((comment) {
-      final descriptionActivity = comment['description_activity'] as String;
-      final dueTime = comment['due_time'] as String;
-      return Card(
-        child: ListTile(
-          title: Wrap(
-            alignment: WrapAlignment.spaceBetween,
-            runSpacing: 2,
-            children: <Widget>[
-              Text(
-                'Texto ',
-                style: const TextStyle(
-                  color: Colors.black,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 20,
-                ),
+    if (decodedResponse is List) {
+      setState(() {
+        jsonResponseCheck = List<List<Map<String, String>>>.from(
+          decodedResponse.map(
+            (shift) => List<Map<String, String>>.from(
+              (shift as List).map(
+                (item) => Map<String, String>.from(item),
               ),
-              Text(
-                'Link ',
-                style: const TextStyle(color: Colors.blue),
-              ),
-              Container(
-                padding: const EdgeInsets.all(3),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(5),
-                ),
-                child: Text(
-                  dueTime,
-                  style: TextStyle(color: Colors.black),
-                ),
-              ),
-            ],
+            ),
           ),
-          subtitle: Text(descriptionActivity),
-        ),
-      );
-    }).toList();
+        );
+      });
+    }
+  } else {
+    // Manejar el error de la petición, si es necesario.
   }
+}
+List<Widget> buildCheckboxList() {
+  if (jsonResponseCheck.length < 1) {
+    return [];
+  }
+
+  final shifts = jsonResponseCheck[0];
+
+  return shifts.map<Widget>((shift) {
+    final idShift = shift['id_shift'] as String;
+    final description = shift['description'] as String;
+    bool isChecked = shift['status'] == 't';
+
+    return CheckboxListTile(
+      controlAffinity: ListTileControlAffinity.leading,
+      title: Align(
+        alignment: Alignment(-1.2, 0), 
+        child: Text(description),
+      ),
+      value: isChecked, 
+      onChanged: (bool? value) {
+        setState(() {
+          isChecked = value ?? false; 
+          shift['status'] = isChecked ? 't' : 'f'; 
+        });
+      },
+    );
+  }).toList();
+}
+
+void submitForm() async {
+  // Filtra los elementos seleccionados
+  final selectedShifts = jsonResponseCheck
+      .expand((shift) => shift)
+      .where((shift) => shift['status'] == 't')
+      .toList();
+
+  // Prepara la lista de IDs de los elementos seleccionados
+  final selectedShiftIds =
+      selectedShifts.map<String>((shift) => shift['id_shift'] as String).toList();
+
+  // Puedes imprimir la lista de IDs para verificar
+  print('Selected Shift IDs: $selectedShiftIds');
+
+  // URL para la solicitud POST, ajusta según tu API
+  final postUrl = Uri.parse('http://tu-api.com/endpoint');
+
+  try {
+    // Realiza la solicitud POST
+    final response = await http.post(
+      postUrl,
+      body: json.encode({'selectedShifts': selectedShiftIds}),
+      headers: {'Content-Type': 'application/json'},
+    );
+
+    // Verifica la respuesta del servidor
+    if (response.statusCode == 200) {
+      print('Solicitud POST exitosa');
+    } else {
+      print('Error en la solicitud POST: ${response.statusCode}');
+    }
+  } catch (error) {
+    print('Error en la solicitud POST: $error');
+  }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -125,119 +166,76 @@ class _TroubleShootingState extends State<TroubleShooting> {
         ],
       ),
       body: Center(
-        child: SingleChildScrollView(
-          child: Column(
-            children: <Widget>[
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        child: Column(
+          children: <Widget>[
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: <Widget>[
+                Container(
+                  alignment: Alignment.topLeft,
+                  padding: const EdgeInsets.all(5),
+                  margin: const EdgeInsets.all(5),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      const Text(
+                        'Work Order Number',
+                        style: TextStyle(
+                          color: Color.fromARGB(255, 5, 5, 5),
+                          fontWeight: FontWeight.w500,
+                          fontSize: 10,
+                        ),
+                      ),
+                      Text(
+                        this.woId,
+                        style: TextStyle(
+                          color: Color.fromARGB(255, 5, 5, 5),
+                          fontWeight: FontWeight.w500,
+                          fontSize: 30,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            Container(
+              alignment: Alignment.topLeft,
+              padding: const EdgeInsets.all(10),
+              margin: const EdgeInsets.all(10),
+              child: const Row(
                 children: <Widget>[
-                  Container(
-                    alignment: Alignment.topLeft,
-                    padding: const EdgeInsets.all(5),
-                    margin: const EdgeInsets.all(5),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        const Text(
-                          'Work Order Number',
-                          style: TextStyle(
-                            color: Color.fromARGB(255, 5, 5, 5),
-                            fontWeight: FontWeight.w500,
-                            fontSize: 10,
-                          ),
-                        ),
-                        Text(
-                          this.woId,
-                          style: TextStyle(
-                            color: Color.fromARGB(255, 5, 5, 5),
-                            fontWeight: FontWeight.w500,
-                            fontSize: 30,
-                          ),
-                        ),
-                      ],
-                    ),
+                  Icon(
+                    Icons.list,
+                    color: Colors.grey,
+                    size: 30.0,
                   ),
-                  Expanded(
-                    child: Container(
-                      margin: const EdgeInsets.all(10),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: <Widget>[
-                          const Text(
-                            'Status',
-                            style: TextStyle(
-                              color: Color.fromARGB(255, 5, 5, 5),
-                              fontWeight: FontWeight.w500,
-                              fontSize: 16,
-                            ),
-                          ),
-                          Text(
-                            description,
-                            style: TextStyle(color: Colors.blue),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  Expanded(
-                    child: Container(
-                      margin: EdgeInsets.all(10),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: <Widget>[
-                          const Text(
-                            'Priority',
-                            style: TextStyle(
-                              color: Color.fromARGB(255, 5, 5, 5),
-                              fontWeight: FontWeight.w500,
-                              fontSize: 16,
-                            ),
-                          ),
-                          Container(
-                            padding: EdgeInsets.all(3),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(5),
-                              color: getColorForPriority(priority),
-                            ),
-                            child: Text(
-                              priority,
-                              style: TextStyle(color: Colors.white),
-                            ),
-                          ),
-                        ],
-                      ),
+                  SizedBox(width: 10),
+                  Text(
+                    'Troubleshooting***',
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontWeight: FontWeight.w500,
+                      fontSize: 30,
                     ),
                   ),
                 ],
               ),
-              Container(
-                alignment: Alignment.topLeft,
-                padding: const EdgeInsets.all(10),
-                margin: const EdgeInsets.all(10),
-                child: const Row(
-                  children: <Widget>[
-                    Icon(
-                      Icons.comment,
-                      color: Colors.blue,
-                      size: 30.0,
-                    ),
-                    SizedBox(width: 10),
-                    Text(
-                      'Troubleshooting***',
-                      style: TextStyle(
-                        color: Colors.black,
-                        fontWeight: FontWeight.w500,
-                        fontSize: 30,
-                      ),
-                    ),
-                  ],
+            ),
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  children: buildCheckboxList(),
                 ),
               ),
-              Column(
-                children: buildCommentCards(),
-              ),
-            ],
-          ),
+            ),
+            ElevatedButton(
+                          onPressed: () {
+                            submitForm();
+                          },
+                          child: Text('Save List'),
+                        ),
+          ],
         ),
       ),
     );
