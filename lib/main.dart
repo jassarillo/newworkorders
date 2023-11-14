@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'pages/WorkOrders.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -44,20 +45,18 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
             'username': email,
             'password': password,
           });
-      /*Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const WorkOrders()),
-      );*/
-      print(response.body);
-      if (response.body == '"200"') {
+       final Map<String, dynamic> responseData = json.decode(response.body);
+      print( 'type ' + responseData['user_type_id']);
+      if (responseData['estatus'] == "200") {
         // ignore: use_build_context_synchronously
+         final String idUser = responseData['idUser'];
+         final String user_type_id = responseData['user_type_id'];
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => const WorkOrders()),
+          MaterialPageRoute(builder: (context) =>  WorkOrders(idUser: idUser, user_type_id: user_type_id)),
         );
-      } else {
+      }else if(responseData['estatus'] == "2020" ) {
         const errorMessage = "User or password failed.";
-
         showDialog(
           context: context,
           builder: (BuildContext context) {
@@ -68,7 +67,7 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
                 TextButton(
                   child: const Text("Accept"),
                   onPressed: () {
-                    Navigator.of(context).pop(); 
+                    Navigator.of(context).pop();
                   },
                 ),
               ],
@@ -121,7 +120,7 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
       //print(position.latitude);
       //print(position.longitude);
       //double distanceInMeters = await Geolocator.distanceBetween(
-          //position.latitude, position.longitude, 19.426314, -98.877709);
+      //position.latitude, position.longitude, 19.426314, -98.877709);
       setState(() {
         latitude = 'Latitud: ${position.latitude}';
         longitude = 'Longitud: ${position.longitude}';

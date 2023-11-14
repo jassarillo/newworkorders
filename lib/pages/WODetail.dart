@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'CheckIn.dart';
 import 'Comments.dart';
+import 'TroubleShooting.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
@@ -335,44 +336,6 @@ class _WODetailState extends State<WODetail> {
                   ],
                 ),
                 const SizedBox(height: 10),
-                // InkWell(
-                  // onTap: () {
-                    // Navigator.push(
-                      // context,
-                      // MaterialPageRoute(
-                        // builder: (context) => Comments(woId: woId),
-                      // ),
-                    // );
-                  // },
-                  // child: const Card(
-                    // child: ListTile(
-                      // leading: Icon(
-                        // Icons.comment,
-                        // color: Color.fromARGB(255, 124, 122, 122),
-                      // ),
-                      // title: Wrap(
-                        // alignment: WrapAlignment.spaceBetween,
-                        // runSpacing: 2,
-                        // children: <Widget>[
-                          // Text(
-                            // 'Comments',
-                            // style: TextStyle(
-                              // color: Colors.black,
-                              // fontWeight: FontWeight.bold,
-                              // fontSize: 20,
-                            // ),
-                          // ),
-                        // ],
-                      // ),
-                      // subtitle: Text('woDescription ccdcd'),
-                      // trailing: Icon(
-                        // Icons.arrow_forward,
-                        // color: Color.fromARGB(255, 124, 122, 122),
-                      // ),
-                    // ),
-                  // ),
-                // ),
-                const SizedBox(height: 10),
                 MaterialButton(
                   padding: const EdgeInsets.all(5),
                   minWidth: 5,
@@ -399,6 +362,154 @@ class _WODetailState extends State<WODetail> {
                     ],
                   ),
                 ),
+                InkWell(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => Comments(woId: woId),
+                      ),
+                    );
+                  },
+                  child: const Card(
+                    child: ListTile(
+                      leading: Icon(
+                        Icons.comment,
+                        color: Color.fromARGB(255, 124, 122, 122),
+                      ),
+                      title: Wrap(
+                        alignment: WrapAlignment.spaceBetween,
+                        runSpacing: 2,
+                        children: <Widget>[
+                          Text(
+                            'Quotation',
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 20,
+                            ),
+                          ),
+                        ],
+                      ),
+                      subtitle: Text('Reported quotatios'),
+                      trailing: Icon(
+                        Icons.arrow_forward,
+                        color: Color.fromARGB(255, 124, 122, 122),
+                      ),
+                    ),
+                  ),
+                ),
+                      InkWell(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => Comments(woId: woId),
+            ),
+          );
+        },
+        child: const Card(
+          child: ListTile(
+            leading: Icon(
+              Icons.comment,
+              color: Color.fromARGB(255, 124, 122, 122),
+            ),
+            title: Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              runSpacing: 2,
+              children: <Widget>[
+                Text(
+                  'Comments',
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20,
+                  ),
+                ),
+              ],
+            ),
+            subtitle: Text('Texxt'),
+            trailing: Icon(
+              Icons.arrow_forward,
+              color: Color.fromARGB(255, 124, 122, 122),
+            ),
+          ),
+        ),
+      ),
+            InkWell(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => TroubleShooting(woId: woId),
+            ),
+          );
+        },
+        child: const Card(
+          child: ListTile(
+            leading: Icon(
+              Icons.comment,
+              color: Color.fromARGB(255, 124, 122, 122),
+            ),
+            title: Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              runSpacing: 2,
+              children: <Widget>[
+                Text(
+                  'TroubleShooting',
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20,
+                  ),
+                ),
+              ],
+            ),
+            subtitle: Text('woDescription ccdcd'),
+            trailing: Icon(
+              Icons.arrow_forward,
+              color: Color.fromARGB(255, 124, 122, 122),
+            ),
+          ),
+        ),
+      ),
+            InkWell(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => Comments(woId: woId),
+            ),
+          );
+        },
+        child: const Card(
+          child: ListTile(
+            leading: Icon(
+              Icons.comment,
+              color: Color.fromARGB(255, 124, 122, 122),
+            ),
+            title: Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              runSpacing: 2,
+              children: <Widget>[
+                Text(
+                  'Assigness',
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20,
+                  ),
+                ),
+              ],
+            ),
+            subtitle: Text('woDescription ccdcd'),
+            trailing: Icon(
+              Icons.arrow_forward,
+              color: Color.fromARGB(255, 124, 122, 122),
+            ),
+          ),
+        ),
+      ),
               ],
             );
           } else {

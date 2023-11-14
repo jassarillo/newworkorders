@@ -5,7 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 class WorkOrders extends StatefulWidget {
-  const WorkOrders({Key? key}) : super(key: key);
+  final String idUser;
+  final String user_type_id;
+  const WorkOrders({Key? key, required this.idUser, required this.user_type_id})
+      : super(key: key);
 
   @override
   State<WorkOrders> createState() => _WorkOrdersState();
@@ -23,7 +26,7 @@ class _WorkOrdersState extends State<WorkOrders> {
 
   Future<void> fetchWorkOrders() async {
     final response = await http.get(Uri.parse(
-        'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/workorders/Wo_get/0/4'));
+        'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/workorders/Wo_get/0/${widget.user_type_id}'));
     if (response.statusCode == 200) {
       final List<dynamic> data = json.decode(response.body);
       if (data is List) {
@@ -84,30 +87,35 @@ class _WorkOrdersState extends State<WorkOrders> {
               ),
             ),
           ),
-          // MaterialButton(
-            // padding: const EdgeInsets.all(20),
-            // minWidth: 5,
-            // height: 50,
-            // onPressed: () {
-              // Navigator.push(context,
-                  // MaterialPageRoute(builder: (context) => const AddNewOrder()));
-            // },
-            // color: const Color.fromARGB(255, 39, 17, 243),
-            // child: const Row(
-              // mainAxisAlignment: MainAxisAlignment.center,
-              // children: [
-                // Icon(
-                  // Icons.add,
-                  // color: Colors.white,
-                // ),
-                // SizedBox(width: 10),
-                // Text(
-                  // 'Add new order',
-                  // style: TextStyle(color: Colors.white),
-                // ),
-              // ],
-            // ),
-          // ),
+          Visibility(
+            visible: widget.user_type_id == '1' || widget.user_type_id == '5',
+            child: MaterialButton(
+              padding: const EdgeInsets.all(20),
+              minWidth: 5,
+              height: 50,
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const AddNewOrder()),
+                );
+              },
+              color: const Color.fromARGB(255, 39, 17, 243),
+              child: const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.add,
+                    color: Colors.white,
+                  ),
+                  SizedBox(width: 10),
+                  Text(
+                    'Add new order',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ],
+              ),
+            ),
+          ),
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: TextField(
@@ -192,46 +200,61 @@ class WorkOrderCard extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => WODetail(woId: woId, priority:'high'),
+            builder: (context) => WODetail(woId: woId, priority: 'high'),
           ),
         );
       },
       child: Card(
-        child: ListTile(
-          title: Wrap(
-            alignment:
-                WrapAlignment.spaceBetween, // Espacio entre los elementos
-            runSpacing: 2, // Espacio entre las líneas
+        //contentPadding: const EdgeInsets.all(16.0), // Ajusta el espacio interno del Card
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            // Encabezado
 
-            children: <Widget>[
-              Text(
-                '$woId ',
-                style: const TextStyle(
-                  color: Colors.black,
-                  fontWeight: FontWeight.bold, // Texto en negritas
-                  fontSize: 20, // Tamaño de fuente
-                ),
+            Text(
+              '   ' + dueTime,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 14.0,
               ),
-              Text(
-                '$descriptionStatus ',
-                style: const TextStyle(color: Colors.blue),
+            ),
+            const SizedBox(
+                height:
+                    8.0), // Espaciado entre el encabezado y el resto del contenido
+
+            ListTile(
+              title: Wrap(
+                alignment: WrapAlignment.spaceBetween,
+                runSpacing: 2,
+                children: <Widget>[
+                  Text(
+                    '$woId ',
+                    style: const TextStyle(
+                      color: Colors.black,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 20,
+                    ),
+                  ),
+                  Text(
+                    '$descriptionStatus ',
+                    style: const TextStyle(color: Colors.blue),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.all(3),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(5),
+                      color: getColorForPriority(priority),
+                    ),
+                    child: Text(
+                      priority,
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                ],
               ),
-              Container(
-                padding: const EdgeInsets.all(3),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(5),
-                  color: getColorForPriority(
-                      priority), // Usa la función para obtener el color
-                ),
-                child: Text(
-                  priority,
-                  style: TextStyle(color: Colors.white),
-                ),
-              ),
-            ],
-          ),
-          subtitle: Text(woDescription),
-          trailing: Text(dueTime),
+              subtitle: Text(woDescription),
+            ),
+          ],
         ),
       ),
     );
