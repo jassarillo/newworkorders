@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'CheckIn.dart';
 import 'Comments.dart';
+import 'Assigness.dart';
 import 'TroubleShooting.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -371,153 +372,152 @@ class _WODetailState extends State<WODetail> {
                       ),
                     );
                   },
-            child: Card(
-  child: ListTile(
-    leading: Container(
-      padding: EdgeInsets.all(8.0),
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: Colors.grey,
-      ),
-      child: Icon(
-        Icons.attach_money,
-        color: Colors.white,
-      ),
-    ),
-    title: Wrap(
-      alignment: WrapAlignment.spaceBetween,
-      runSpacing: 2,
-      children: <Widget>[
-        Text(
-          'Quotation',
-          style: TextStyle(
-            color: Colors.black,
-            fontWeight: FontWeight.bold,
-            fontSize: 20,
-          ),
-        ),
-      ],
-    ),
-    subtitle: Text('Reported quotations'),
-    trailing: Icon(
-      Icons.arrow_forward,
-      color: Color.fromARGB(255, 124, 122, 122),
-    ),
-  ),
-),
-
-                ),
-                      InkWell(
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => Comments(woId: woId),
-            ),
-          );
-        },
-        child: const Card(
-          child: ListTile(
-            leading: Icon(
-              Icons.comment,
-              color: Color.fromARGB(255, 124, 122, 122),
-            ),
-            title: Wrap(
-              alignment: WrapAlignment.spaceBetween,
-              runSpacing: 2,
-              children: <Widget>[
-                Text(
-                  'Comments',
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 20,
+                  child: Card(
+                    child: ListTile(
+                      leading: Container(
+                        padding: EdgeInsets.all(8.0),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.grey,
+                        ),
+                        child: Icon(
+                          Icons.attach_money,
+                          color: Colors.white,
+                        ),
+                      ),
+                      title: Wrap(
+                        alignment: WrapAlignment.spaceBetween,
+                        runSpacing: 2,
+                        children: <Widget>[
+                          Text(
+                            'Quotation',
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 20,
+                            ),
+                          ),
+                        ],
+                      ),
+                      subtitle: Text('Reported quotations'),
+                      trailing: Icon(
+                        Icons.arrow_forward,
+                        color: Color.fromARGB(255, 124, 122, 122),
+                      ),
+                    ),
                   ),
                 ),
-              ],
-            ),
-            subtitle: Text('Texxt'),
-            trailing: Icon(
-              Icons.arrow_forward,
-              color: Color.fromARGB(255, 124, 122, 122),
-            ),
-          ),
-        ),
-      ),
-            InkWell(
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => TroubleShooting(woId: woId),
-            ),
-          );
-        },
-        child: const Card(
-          child: ListTile(
-            leading: Icon(
-              Icons.list,
-              color: Color.fromARGB(255, 124, 122, 122),
-            ),
-            title: Wrap(
-              alignment: WrapAlignment.spaceBetween,
-              runSpacing: 2,
-              children: <Widget>[
-                Text(
-                  'TroubleShooting',
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 20,
+                InkWell(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => Comments(woId: woId),
+                      ),
+                    );
+                  },
+                  child: const Card(
+                    child: ListTile(
+                      leading: Icon(
+                        Icons.comment,
+                        color: Color.fromARGB(255, 124, 122, 122),
+                      ),
+                      title: Wrap(
+                        alignment: WrapAlignment.spaceBetween,
+                        runSpacing: 2,
+                        children: <Widget>[
+                          Text(
+                            'Comments',
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 20,
+                            ),
+                          ),
+                        ],
+                      ),
+                      subtitle: Text('Texxt'),
+                      trailing: Icon(
+                        Icons.arrow_forward,
+                        color: Color.fromARGB(255, 124, 122, 122),
+                      ),
+                    ),
                   ),
                 ),
-              ],
-            ),
-            subtitle: Text('woDescription ccdcd'),
-            trailing: Icon(
-              Icons.arrow_forward,
-              color: Color.fromARGB(255, 124, 122, 122),
-            ),
-          ),
-        ),
-      ),
-            InkWell(
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => Comments(woId: woId),
-            ),
-          );
-        },
-        child: const Card(
-          child: ListTile(
-            leading: Icon(
-              Icons.person,
-              color: Color.fromARGB(255, 124, 122, 122),
-            ),
-            title: Wrap(
-              alignment: WrapAlignment.spaceBetween,
-              runSpacing: 2,
-              children: <Widget>[
-                Text(
-                  'Assigness',
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 20,
+                InkWell(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => TroubleShooting(woId: woId),
+                      ),
+                    );
+                  },
+                  child: const Card(
+                    child: ListTile(
+                      leading: Icon(
+                        Icons.list,
+                        color: Color.fromARGB(255, 124, 122, 122),
+                      ),
+                      title: Wrap(
+                        alignment: WrapAlignment.spaceBetween,
+                        runSpacing: 2,
+                        children: <Widget>[
+                          Text(
+                            'TroubleShooting',
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 20,
+                            ),
+                          ),
+                        ],
+                      ),
+                      subtitle: Text('woDescription ccdcd'),
+                      trailing: Icon(
+                        Icons.arrow_forward,
+                        color: Color.fromARGB(255, 124, 122, 122),
+                      ),
+                    ),
                   ),
                 ),
-              ],
-            ),
-            subtitle: Text('woDescription ccdcd'),
-            trailing: Icon(
-              Icons.arrow_forward,
-              color: Color.fromARGB(255, 124, 122, 122),
-            ),
-          ),
-        ),
-      ),
+                InkWell(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => Assigness(woId: woId),
+                      ),
+                    );
+                  },
+                  child: const Card(
+                    child: ListTile(
+                      leading: Icon(
+                        Icons.person,
+                        color: Color.fromARGB(255, 124, 122, 122),
+                      ),
+                      title: Wrap(
+                        alignment: WrapAlignment.spaceBetween,
+                        runSpacing: 2,
+                        children: <Widget>[
+                          Text(
+                            'Assigness',
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 20,
+                            ),
+                          ),
+                        ],
+                      ),
+                      subtitle: Text('woDescription ccdcd'),
+                      trailing: Icon(
+                        Icons.arrow_forward,
+                        color: Color.fromARGB(255, 124, 122, 122),
+                      ),
+                    ),
+                  ),
+                ),
               ],
             );
           } else {
