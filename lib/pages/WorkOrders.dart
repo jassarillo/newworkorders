@@ -28,6 +28,7 @@ class _WorkOrdersState extends State<WorkOrders> {
     final response = await http.get(Uri.parse(
         'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/workorders/Wo_get/0/${widget.user_type_id}'));
     if (response.statusCode == 200) {
+      print(response.body);
       final List<dynamic> data = json.decode(response.body);
       if (data is List) {
         setState(() {

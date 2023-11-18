@@ -18,7 +18,12 @@ class _AssignessState extends State<Assigness> {
   String priority = '';
   String description = '';
   List<dynamic> jsonResponse = [];
-
+  List<dynamic> filteredWorkOrders = [];
+  TextEditingController searchController = TextEditingController();
+  //List<dynamic> comments = [];
+  Future<void> _refresh() async {
+    await fetchWorkOrderDetailsMessages(widget.woId);
+  }
   Color getColorForPriority(String priority) {
     if (priority == 'high') {
       return Colors.red;
@@ -34,46 +39,39 @@ class _AssignessState extends State<Assigness> {
     super.initState();
     fetchWorkOrderDetailsMessages(widget.woId);
   }
-
+  
   Future<void> fetchWorkOrderDetailsMessages(String woId) async {
-    final url = Uri.parse(
-        //'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/workorders/Comments_get/$woId');
-        'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/workorders/Comments_get/0');
-    final response = await http.get(url);
+  final url = Uri.parse(
+      'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/workorders/Comments_get/0');
+  final response = await http.get(url);
 
-    if (response.statusCode == 200) {
-      jsonResponse = json.decode(response.body);
-      if (jsonResponse.length > 1) {
-        final woData = jsonResponse[0][0];
-        final comments = jsonResponse[1];
-
-        final woId = woData['wo_id'] as String;
-        final priority = woData['priority'] as String;
-        final description = woData['description'] as String;
-
-        setState(() {
-          this.woId = woId;
-          this.priority = priority;
-          this.description = description;
-        });
-      }
+  if (response.statusCode == 200) {
+    jsonResponse = json.decode(response.body);
+    if (jsonResponse.length > 1) {
+      filterWorkOrders(searchController.text);
     }
   }
-  
+}
 
   List<Widget> buildCommentCards() {
     if (jsonResponse.length < 2) {
       return [];
     }
+  List<dynamic> localComments;
 
-    final comments = jsonResponse[1];
-    return comments.map<Widget>((comment) {
+    //final comments = jsonResponse[1];
+    if (filteredWorkOrders.isNotEmpty) {
+    localComments = List.from(filteredWorkOrders);
+  } else {
+    localComments = List.from(jsonResponse[1]);
+  }
+    return localComments.map<Widget>((comment) {
       final descriptionActivity = comment['description_activity'] as String;
       final dueTime = comment['due_time'] as String;
       final woId = comment['wo_id'] as String;
 
       return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+        padding: const EdgeInsets.symmetric(vertical: 1.0, horizontal: 16.0),
         child: Card(
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12.0),
@@ -120,6 +118,25 @@ class _AssignessState extends State<Assigness> {
     }).toList();
   }
 
+  void filterWorkOrders(String query) {
+    setState(() {
+      filteredWorkOrders = jsonResponse.length >= 2
+          ? jsonResponse[1]
+              .where((workOrder) =>
+                  workOrder['description_activity']
+                      .toLowerCase()
+                      .contains(query.toLowerCase()) ||
+                  workOrder['due_time']
+                      .toLowerCase()
+                      .contains(query.toLowerCase()) ||
+                  workOrder['wo_id']
+                      .toLowerCase()
+                      .contains(query.toLowerCase()))
+              .toList()
+          : [];
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -141,7 +158,8 @@ class _AssignessState extends State<Assigness> {
           ),
         ],
       ),
-      body: Container(
+         body: RefreshIndicator(
+        onRefresh: _refresh,
         color:
             Colors.grey.shade200, // Ajusta el tono gris según tus preferencias
 
@@ -199,6 +217,20 @@ class _AssignessState extends State<Assigness> {
                     ),
                   ),
                 ],
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.all(10),
+              margin: const EdgeInsets.all(10),
+              child: TextField(
+                controller: searchController,
+                onChanged: (value) {
+                  filterWorkOrders(value);
+                },
+                decoration: InputDecoration(
+                  labelText: 'Search',
+                  prefixIcon: Icon(Icons.search),
+                ),
               ),
             ),
             Expanded(

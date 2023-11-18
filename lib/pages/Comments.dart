@@ -37,14 +37,17 @@ class _CommentsState extends State<Comments> {
   Future<void> fetchWorkOrderDetailsMessages(String woId) async {
     final url = Uri.parse(
         //'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/workorders/Comments_get/$woId');
-        'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/workorders/Comments_get/0');
+        'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/comments/List_get/383');
     final response = await http.get(url);
-
-    if (response.statusCode == 200) {
+    // jsonResponse = json.decode(response.body);
+    // final woData = jsonResponse[0][0];
+    // final comments = jsonResponse[1];
+    //print(comments);
+     if (response.statusCode == 200) {
       jsonResponse = json.decode(response.body);
       if (jsonResponse.length > 1) {
         final woData = jsonResponse[0][0];
-        final comments = jsonResponse[1];
+        //final comments = jsonResponse[1];
 
         final woId = woData['wo_id'] as String;
         final priority = woData['priority'] as String;
@@ -66,8 +69,11 @@ class _CommentsState extends State<Comments> {
 
     final comments = jsonResponse[1];
     return comments.map<Widget>((comment) {
-      final descriptionActivity = comment['description_activity'] as String;
-      final dueTime = comment['due_time'] as String;
+      final descriptionActivity = comment['comment'] as String;
+      final date = comment['date'] as String;
+      final type = comment['type'] as String;
+      final name = comment['name'] as String;
+
       return Card(
         child: ListTile(
           title: Wrap(
@@ -75,16 +81,17 @@ class _CommentsState extends State<Comments> {
             runSpacing: 2,
             children: <Widget>[
               Text(
-                'Texto ',
+                name,
                 style: const TextStyle(
                   color: Colors.black,
                   fontWeight: FontWeight.bold,
-                  fontSize: 20,
+                  fontSize: 14,
                 ),
               ),
               Text(
-                'Link ',
-                style: const TextStyle(color: Colors.blue),
+                type,
+                style: const TextStyle(color: Colors.black,
+                 fontSize: 14),
               ),
               Container(
                 padding: const EdgeInsets.all(3),
@@ -92,8 +99,9 @@ class _CommentsState extends State<Comments> {
                   borderRadius: BorderRadius.circular(5),
                 ),
                 child: Text(
-                  dueTime,
-                  style: TextStyle(color: Colors.black),
+                  date,
+                  style: TextStyle(color: Colors.black,
+                  fontSize: 14,),
                 ),
               ),
             ],
@@ -126,127 +134,123 @@ class _CommentsState extends State<Comments> {
         ],
       ),
       body: Center(
-          child: Column(
-            children: <Widget>[
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: <Widget>[
-                  Container(
-                    alignment: Alignment.topLeft,
-                    padding: const EdgeInsets.all(5),
-                    margin: const EdgeInsets.all(5),
+        child: Column(
+          children: <Widget>[
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: <Widget>[
+                Container(
+                  alignment: Alignment.topLeft,
+                  padding: const EdgeInsets.all(5),
+                  margin: const EdgeInsets.all(5),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      const Text(
+                        'Work Order Number',
+                        style: TextStyle(
+                          color: Color.fromARGB(255, 5, 5, 5),
+                          fontWeight: FontWeight.w500,
+                          fontSize: 15,
+                        ),
+                      ),
+                      Text(
+                        this.woId,
+                        style: TextStyle(
+                          color: Color.fromARGB(255, 5, 5, 5),
+                          fontWeight: FontWeight.w500,
+                          fontSize: 35,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: Container(
+                    margin: const EdgeInsets.all(10),
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.end,
                       children: <Widget>[
                         const Text(
-                          'Work Order Number',
+                          'Status',
                           style: TextStyle(
                             color: Color.fromARGB(255, 5, 5, 5),
                             fontWeight: FontWeight.w500,
-                            fontSize: 10,
+                            fontSize: 16,
                           ),
                         ),
                         Text(
-                          this.woId,
+                          description,
+                          style: TextStyle(color: Colors.blue),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Container(
+                    margin: EdgeInsets.all(10),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: <Widget>[
+                        const Text(
+                          'Priority',
                           style: TextStyle(
                             color: Color.fromARGB(255, 5, 5, 5),
                             fontWeight: FontWeight.w500,
-                            fontSize: 30,
+                            fontSize: 16,
+                          ),
+                        ),
+                        Container(
+                          padding: EdgeInsets.all(3),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(5),
+                            color: getColorForPriority(priority),
+                          ),
+                          child: Text(
+                            priority,
+                            style: TextStyle(color: Colors.white),
                           ),
                         ),
                       ],
                     ),
                   ),
-                  Expanded(
-                    child: Container(
-                      margin: const EdgeInsets.all(10),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: <Widget>[
-                          const Text(
-                            'Status',
-                            style: TextStyle(
-                              color: Color.fromARGB(255, 5, 5, 5),
-                              fontWeight: FontWeight.w500,
-                              fontSize: 16,
-                            ),
-                          ),
-                          Text(
-                            description,
-                            style: TextStyle(color: Colors.blue),
-                          ),
-                        ],
-                      ),
-                    ),
+                ),
+              ],
+            ),
+            Container(
+              alignment: Alignment.topLeft,
+              padding: const EdgeInsets.all(10),
+              margin: const EdgeInsets.all(10),
+              child: const Row(
+                children: <Widget>[
+                  Icon(
+                    Icons.comment,
+                    color: Colors.blue,
+                    size: 30.0,
                   ),
-                  Expanded(
-                    child: Container(
-                      margin: EdgeInsets.all(10),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: <Widget>[
-                          const Text(
-                            'Priority',
-                            style: TextStyle(
-                              color: Color.fromARGB(255, 5, 5, 5),
-                              fontWeight: FontWeight.w500,
-                              fontSize: 16,
-                            ),
-                          ),
-                          Container(
-                            padding: EdgeInsets.all(3),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(5),
-                              color: getColorForPriority(priority),
-                            ),
-                            child: Text(
-                              priority,
-                              style: TextStyle(color: Colors.white),
-                            ),
-                          ),
-                        ],
-                      ),
+                  SizedBox(width: 10),
+                  Text(
+                    'COMMENTS',
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontWeight: FontWeight.w500,
+                      fontSize: 30,
                     ),
                   ),
                 ],
               ),
-              Container(
-                alignment: Alignment.topLeft,
-                padding: const EdgeInsets.all(10),
-                margin: const EdgeInsets.all(10),
-                child: const Row(
-                  children: <Widget>[
-                    Icon(
-                      Icons.comment,
-                      color: Colors.blue,
-                      size: 30.0,
-                    ),
-                    SizedBox(width: 10),
-                    Text(
-                      'COMMENTS',
-                      style: TextStyle(
-                        color: Colors.black,
-                        fontWeight: FontWeight.w500,
-                        fontSize: 30,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-             
-              Expanded(
+            ),
+            Expanded(
               child: SingleChildScrollView(
                 child: Column(
                   children: buildCommentCards(),
                 ),
               ),
             ),
-
-
-            ],
-          ),
+          ],
         ),
-      
+      ),
     );
   }
 }
