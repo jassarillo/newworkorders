@@ -1,13 +1,15 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class CheckIn extends StatefulWidget {
   final String woId;
-  const CheckIn({required this.woId, Key? key}) : super(key: key);
+  final String idUser;
+
+  const CheckIn({required this.woId, required this.idUser, Key? key})
+      : super(key: key);
 
   @override
   State<CheckIn> createState() => _CheckInState();
@@ -106,7 +108,7 @@ class _CheckInState extends State<CheckIn> {
       double distanceInMeters = await Geolocator.distanceBetween(
           position.latitude, position.longitude, 19.426314, -98.877709);
 
-    print('Distancia aproximada: $distanceInMeters metros');
+      print('Distancia aproximada: $distanceInMeters metros');
 
       setState(() {
         latitude = 'Latitud: ${position.latitude}';
@@ -172,62 +174,82 @@ class _CheckInState extends State<CheckIn> {
   }
 
   Future<void> submitForm() async {
-  try {
-    final Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high);
-    double distanceInMeters = await Geolocator.distanceBetween(
-        position.latitude, position.longitude, 19.426314, -98.877709);
+    try {
+      final Position position = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.high);
+      double distanceInMeters = await Geolocator.distanceBetween(
+          position.latitude, position.longitude, 19.426314, -98.877709);
 
-    final Map<String, dynamic> formData = {
-      'woId': woId, // Agregamos el campo woId
-      'shift': {
-        'description': selectedOption?.description,
-        'idShift': selectedOption?.idShift,
-      },
-      'id_shift': selectedOption?.idShift,
-      'checkboxValue': isChecked,
-      'comment': commentController.text,
-      'latitude': latitude,
-      'longitude': longitude,
-      'proximity': distanceInMeters.toString(), // Convertimos a String
-    };
-
-    final response = await http.post(
-      Uri.parse(
-          'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/workorders/Check_in_post'),
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-      },
-      body: jsonEncode(formData),
-    );
-    //print(formData);
-    //print(response.body);
-
-    if (response.statusCode == 200) {
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text("Success!"),
-            content: const Text("Successful registration."),
-            actions: <Widget>[
-              TextButton(
-                child: const Text("Aceptar"),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-              ),
-            ],
-          );
+      final Map<String, dynamic> formData = {
+        'woId': woId, // Agregamos el campo woId
+        'shift': {
+          'description': selectedOption?.description,
+          'idShift': selectedOption?.idShift,
         },
+        'id_shift': selectedOption?.idShift,
+        'checkboxValue': isChecked,
+        'comment': commentController.text,
+        'latitude': latitude,
+        'longitude': longitude,
+        'proximity': distanceInMeters.toString(), // Convertimos a String
+      };
+
+      final response = await http.post(
+        Uri.parse(
+            'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/workorders/Check_in_post'),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: jsonEncode(formData),
       );
-    } else {
+      //print(formData);
+      //print(response.body);
+
+      if (response.statusCode == 200) {
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text("Success!"),
+              content: const Text("Successful registration."),
+              actions: <Widget>[
+                TextButton(
+                  child: const Text("Aceptar"),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      } else {
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text("Error"),
+              content: const Text("Failed registration."),
+              actions: <Widget>[
+                TextButton(
+                  child: const Text("Accept"),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      }
+    } catch (e) {
+      print('Error: $e');
       showDialog(
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
             title: const Text("Error"),
-            content: const Text("Failed registration."),
+            content: const Text("An error occurred."),
             actions: <Widget>[
               TextButton(
                 child: const Text("Accept"),
@@ -240,28 +262,7 @@ class _CheckInState extends State<CheckIn> {
         },
       );
     }
-  } catch (e) {
-    print('Error: $e');
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text("Error"),
-          content: const Text("An error occurred."),
-          actions: <Widget>[
-            TextButton(
-              child: const Text("Accept"),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
   }
-}
-
 
   @override
   Widget build(BuildContext context) {
@@ -437,21 +438,53 @@ class _CheckInState extends State<CheckIn> {
                             ],
                           ),
                         ),
-                        TextField(
-                          maxLines: 3,
-                          controller: commentController,
-                          decoration: InputDecoration(
-                            labelText: 'Write a comment',
-                            border: OutlineInputBorder(),
+                        Visibility(
+                          visible:
+                              showCheckbox && selectedOption?.idShift == "4",
+                          child: TextField(
+                            maxLines: 3,
+                            controller: commentController,
+                            decoration: InputDecoration(
+                              labelText: 'Write a comment',
+                              border: OutlineInputBorder(),
+                            ),
                           ),
                         ),
-                        ElevatedButton(
-                          onPressed: () {
-                            requestLocationPermission();
-                            submitForm();
-                          },
-                          child: Text('Punch In'),
-                        ),
+
+                     ElevatedButton(
+  onPressed: () {
+    if (showCheckbox && isChecked) {
+      // Si el checkbox está activado, verificar el campo de comentarios
+      if (commentController.text.isEmpty) {
+        // El campo de comentarios está vacío, muestra un mensaje de error
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text("Error"),
+              content: Text("Debes escribir un comentario."),
+              actions: <Widget>[
+                TextButton(
+                  child: Text("Aceptar"),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          },
+        );
+        return; // Salir de la función si hay un error
+      }
+    }
+
+    // Continuar con la lógica de envío del formulario
+    requestLocationPermission();
+    submitForm();
+  },
+  child: Text('Punch In'),
+),
+
                         /*Text(latitude),
                         Text(longitude),*/
                         // Agregar otros widgets que desees dentro del SingleChildScrollView

@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:convert';
+import 'TroubleShooting.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -151,12 +152,10 @@ class _AddNewOrderState extends State<AddNewOrder> {
 
       try {
         final response = await request.send();
-        // print(response.body);
         final responseBody = await response.stream.bytesToString();
         print(responseBody);
         if (response.statusCode == 200) {
           final data = jsonDecode(responseBody);
-
           insertId = data['insert_id'];
           final exitMessage = "Nueva work order creada Id: $insertId";
           showDialog(
@@ -169,7 +168,15 @@ class _AddNewOrderState extends State<AddNewOrder> {
                   TextButton(
                     child: const Text("Aceptar"),
                     onPressed: () {
-                      Navigator.of(context).pop();
+                      Navigator.of(context).pop(); // Cierra el diálogo
+                      // Navega a TroubleShooting.dart con insertId como parámetro
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              TroubleShooting(insertId: insertId.toString()),
+                        ),
+                      );
                     },
                   ),
                 ],
@@ -489,7 +496,6 @@ class _AddNewOrderState extends State<AddNewOrder> {
                 },
                 child: const Text('Select Multiple Images'),
               ),
-
               if (imageFileList!.isNotEmpty)
                 Container(
                   height: 200, // Establece una altura máxima para el GridView
@@ -524,7 +530,6 @@ class _AddNewOrderState extends State<AddNewOrder> {
                     },
                   ),
                 ),
-
               MaterialButton(
                 padding: const EdgeInsets.all(20),
                 minWidth: 5,

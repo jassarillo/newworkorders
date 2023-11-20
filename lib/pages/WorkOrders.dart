@@ -155,6 +155,7 @@ class _WorkOrdersState extends State<WorkOrders> {
               dueTime: workOrder['due_time'] as String,
               woId: workOrder['wo_id'] as String,
               descriptionStatus: workOrder['description'] as String,
+              idUser: widget.idUser,
             ),
         ],
       ),
@@ -184,6 +185,7 @@ class WorkOrderCard extends StatelessWidget {
   final String priority;
   final String woDescription;
   final String dueTime;
+  final String idUser;
 
   const WorkOrderCard({
     Key? key,
@@ -192,6 +194,7 @@ class WorkOrderCard extends StatelessWidget {
     required this.priority,
     required this.woDescription,
     required this.dueTime,
+    required this.idUser,
   }) : super(key: key);
 
   @override
@@ -201,7 +204,7 @@ class WorkOrderCard extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => WODetail(woId: woId, priority: 'high'),
+            builder: (context) => WODetail(woId: woId, priority: 'high', idUser: this.idUser),
           ),
         );
       },

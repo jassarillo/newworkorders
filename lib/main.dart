@@ -38,6 +38,7 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
   String longitude = 'Longitud: -';
   void login(String email, password) async {
     try {
+      //print('hola mundo!');
       http.Response response = await http.post(
           Uri.parse(
               'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/users/Login_post'),
@@ -45,17 +46,19 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
             'username': email,
             'password': password,
           });
-       final Map<String, dynamic> responseData = json.decode(response.body);
-      print( 'type ' + responseData['user_type_id']);
+      final Map<String, dynamic> responseData = json.decode(response.body);
+      //print('type... ' + responseData['estatus']);
       if (responseData['estatus'] == "200") {
         // ignore: use_build_context_synchronously
-         final String idUser = responseData['idUser'];
-         final String user_type_id = responseData['user_type_id'];
+        final String idUser = responseData['idUser'];
+        final String user_type_id = responseData['user_type_id'];
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) =>  WorkOrders(idUser: idUser, user_type_id: user_type_id)),
+          MaterialPageRoute(
+              builder: (context) =>
+                  WorkOrders(idUser: idUser, user_type_id: user_type_id)),
         );
-      }else if(responseData['estatus'] == "2020" ) {
+      } else if (responseData['estatus'] == "2020") {
         const errorMessage = "User or password failed.";
         showDialog(
           context: context,
