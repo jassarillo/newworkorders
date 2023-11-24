@@ -47,7 +47,8 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
             'password': password,
           });
       final Map<String, dynamic> responseData = json.decode(response.body);
-      //print('type... ' + responseData['estatus']);
+      print('type... ' + responseData['estatus']);
+      print('status... ' + response.body);
       if (responseData['estatus'] == "200") {
         // ignore: use_build_context_synchronously
         final String idUser = responseData['idUser'];
@@ -80,6 +81,23 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
       }
     } catch (e) {
       print("Error: ${e.toString()}");
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text("Access Error"),
+            content: Text("Error: ${e.toString()}"),
+            actions: <Widget>[
+              TextButton(
+                child: const Text("Accept"),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
     }
   }
 

@@ -173,7 +173,7 @@ class _CheckInState extends State<CheckIn> {
     }
   }
 
-  Future<void> submitForm() async {
+  Future<void> submitForm(String idUser) async {
     try {
       final Position position = await Geolocator.getCurrentPosition(
           desiredAccuracy: LocationAccuracy.high);
@@ -192,6 +192,7 @@ class _CheckInState extends State<CheckIn> {
         'latitude': latitude,
         'longitude': longitude,
         'proximity': distanceInMeters.toString(), // Convertimos a String
+        'idUser': widget.idUser,
       };
 
       final response = await http.post(
@@ -203,7 +204,7 @@ class _CheckInState extends State<CheckIn> {
         body: jsonEncode(formData),
       );
       //print(formData);
-      //print(response.body);
+      print(response.body);
 
       if (response.statusCode == 200) {
         showDialog(
@@ -462,10 +463,10 @@ class _CheckInState extends State<CheckIn> {
           builder: (BuildContext context) {
             return AlertDialog(
               title: Text("Error"),
-              content: Text("Debes escribir un comentario."),
+              content: Text("You need add a comment!"),
               actions: <Widget>[
                 TextButton(
-                  child: Text("Aceptar"),
+                  child: Text("Accept"),
                   onPressed: () {
                     Navigator.of(context).pop();
                   },
@@ -480,7 +481,7 @@ class _CheckInState extends State<CheckIn> {
 
     // Continuar con la lógica de envío del formulario
     requestLocationPermission();
-    submitForm();
+    submitForm(widget.idUser);
   },
   child: Text('Punch In'),
 ),

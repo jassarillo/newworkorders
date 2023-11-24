@@ -69,9 +69,24 @@ class _WODetailState extends State<WODetail> {
         backgroundColor: Colors.white,
         iconTheme: const IconThemeData(color: Colors.black),
         centerTitle: true,
-        leading: IconButton(
-          onPressed: () {},
-          icon: const Icon(Icons.menu),
+        leading: PopupMenuButton<String>(
+icon: const Icon(Icons.menu),          onSelected: (value) {
+            if (value == 'login') {
+              // Implementa la lógica para manejar la opción "Login"
+            } else if (value == 'back') {
+              Navigator.of(context).pop();
+            }
+          },
+          itemBuilder: (BuildContext context) => [
+            // const PopupMenuItem<String>(
+            //   value: 'login',
+            //   child: Text('Login'),
+            // ),
+            const PopupMenuItem<String>(
+              value: 'back',
+              child: Text('Work Orders'),
+            ),
+          ],
         ),
         actions: [
           IconButton(

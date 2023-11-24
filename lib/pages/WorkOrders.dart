@@ -57,21 +57,43 @@ class _WorkOrdersState extends State<WorkOrders> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        iconTheme: const IconThemeData(color: Colors.black),
-        centerTitle: true,
-        leading: IconButton(
-          onPressed: () {},
-          icon: const Icon(Icons.menu),
-        ),
-        actions: [
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(Icons.more_vert),
+    appBar: AppBar(
+      backgroundColor: Colors.white,
+      iconTheme: const IconThemeData(color: Colors.black),
+      centerTitle: true,
+      leading: PopupMenuButton<String>(
+        onSelected: (value) {
+          if (value == 'login') {
+            // Implementa la lógica para manejar la opción "Login"
+          } else if (value == 'back') {
+            Navigator.of(context).pop();
+          }
+        },
+        itemBuilder: (BuildContext context) => [
+          const PopupMenuItem<String>(
+            value: 'login',
+            child: Text('Login'),
+          ),
+          const PopupMenuItem<String>(
+            value: 'back',
+            child: Text('Back'),
           ),
         ],
+        child: InkWell(
+          onTap: () {}, // Puedes dejarlo vacío o agregar una acción personalizada si es necesario
+          child: Padding(
+            padding: const EdgeInsets.all(8.0), // Ajusta el padding según tus necesidades
+            child: const Icon(Icons.menu),
+          ),
+        ),
       ),
+      actions: [
+        IconButton(
+          onPressed: () {},
+          icon: const Icon(Icons.more_vert),
+        ),
+      ],
+    ),
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: <Widget>[
