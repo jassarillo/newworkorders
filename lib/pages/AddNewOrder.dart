@@ -7,7 +7,8 @@ import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 
 class AddNewOrder extends StatefulWidget {
-  const AddNewOrder({Key? key}) : super(key: key);
+  final String idUser;
+  const AddNewOrder({Key? key, required this.idUser}) : super(key: key);
 
   @override
   State<AddNewOrder> createState() => _AddNewOrderState();
@@ -96,7 +97,7 @@ class _AddNewOrderState extends State<AddNewOrder> {
   }
 
   Future<void> _uploadImageAndSaveOrder() async {
-    if (imageFileList!.length > 0) {
+    if (imageFileList!.length >= 3) {
       //Si hay imagenes hace la carga
       if (selectedStatus?.woStatusId == null ||
           selectedAsset?.woUitId == null ||
@@ -108,8 +109,7 @@ class _AddNewOrderState extends State<AddNewOrder> {
           builder: (BuildContext context) {
             return AlertDialog(
               title: const Text("Error"),
-              content: const Text(
-                  "Por favor, completa todos los campos antes de guardar."),
+              content: const Text("All inputs are required!"),
               actions: <Widget>[
                 TextButton(
                   child: const Text("Aceptar"),
@@ -131,7 +131,7 @@ class _AddNewOrderState extends State<AddNewOrder> {
       request.fields['wo_asset'] = selectedAsset?.woUitId ?? '';
       request.fields['wo_priority'] = selectedPriority?.priorityId ?? '';
       request.fields['wo_problem'] = problem;
-      request.fields['user_id'] = '9';
+      request.fields['user_id'] = widget.idUser;
       request.fields['wo_due_date'] =
           selectedDate != null ? _dateFormat.format(selectedDate!) : '';
 
@@ -157,7 +157,7 @@ class _AddNewOrderState extends State<AddNewOrder> {
         if (response.statusCode == 200) {
           final data = jsonDecode(responseBody);
           insertId = data['insert_id'];
-          final exitMessage = "Nueva work order creada Id: $insertId";
+          final exitMessage = "New work order created Id: $insertId";
           showDialog(
             context: context,
             builder: (BuildContext context) {
@@ -173,8 +173,9 @@ class _AddNewOrderState extends State<AddNewOrder> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) =>
-                              TroubleShooting(insertId: insertId.toString()),
+                          builder: (context) => TroubleShooting(
+                              insertId: insertId.toString(),
+                              idUser: widget.idUser),
                         ),
                       );
                     },
@@ -210,8 +211,7 @@ class _AddNewOrderState extends State<AddNewOrder> {
           builder: (BuildContext context) {
             return AlertDialog(
               title: const Text("Error"),
-              content:
-                  Text("Error al cargar las imágenes y guardar la orden: $e"),
+              content: Text("Error uploading images and saving the order: $e"),
               actions: <Widget>[
                 TextButton(
                   child: const Text("Aceptar"),
@@ -224,6 +224,11 @@ class _AddNewOrderState extends State<AddNewOrder> {
           },
         );
       }
+    } else if (imageFileList!.length < 3) {
+      // Less than 3 images selected
+      _showAlertDialog(
+          'Error', 'Please select at least three images before saving.');
+      return;
     } else {
       //Alert cargar imagenes
       showDialog(
@@ -231,8 +236,8 @@ class _AddNewOrderState extends State<AddNewOrder> {
         builder: (BuildContext context) {
           return AlertDialog(
             title: const Text("Error"),
-            content: const Text(
-                "Por favor, selecciona al menos una imagen antes de guardar."),
+            content:
+                const Text("Please select at least one image before saving."),
             actions: <Widget>[
               TextButton(
                 child: const Text("Aceptar"),
@@ -248,12 +253,32 @@ class _AddNewOrderState extends State<AddNewOrder> {
     }
   }
 
+  void _showAlertDialog(String title, String content) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(title),
+          content: Text(content),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Future<void> fetchWorkOrderUnitList() async {
     final response = await http.get(
       Uri.parse(
           'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/workorders/Catalog_get'),
     );
-    print(response.body);
+    print(">>> " + response.body);
     if (response.statusCode == 200) {
       final List<dynamic> data = json.decode(response.body);
       final List<WorkOrderUnit> statuses = (data.isNotEmpty && data[0] is List)
@@ -280,6 +305,7 @@ class _AddNewOrderState extends State<AddNewOrder> {
         body: {
           "site_id": siteId,
         });
+    print("Unit_asset_post");
     print(response.statusCode);
     if (response.statusCode == 200) {
       final List<dynamic> data = json.decode(response.body);
@@ -449,8 +475,7 @@ class _AddNewOrderState extends State<AddNewOrder> {
                     },
                   ),
                 ),
-                readOnly:
-                    true, // Para evitar la edición manual del campo de fecha.
+                readOnly: true,
                 controller: TextEditingController(
                   text: selectedDate != null
                       ? DateFormat('yyyy-MM-dd').format(selectedDate!)

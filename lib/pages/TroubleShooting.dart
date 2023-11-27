@@ -5,7 +5,10 @@ import 'package:http/http.dart' as http;
 class TroubleShooting extends StatefulWidget {
   //final String woId;
   final String insertId;
-  const TroubleShooting({required this.insertId, Key? key}) : super(key: key);
+  final String idUser;
+  const TroubleShooting(
+      {required this.insertId, required this.idUser, Key? key})
+      : super(key: key);
 
   //TroubleShooting({required this.insertId, Key? key}) : super(key: key);
 
@@ -13,13 +16,61 @@ class TroubleShooting extends StatefulWidget {
   State<TroubleShooting> createState() => _TroubleShootingState();
 }
 
+class WorkOrderUnit {
+  final String woStatusId;
+  final String description;
+
+  WorkOrderUnit({required this.woStatusId, required this.description});
+
+  factory WorkOrderUnit.fromJson(Map<String, dynamic> json) {
+    return WorkOrderUnit(
+      woStatusId: json['site_id'],
+      description: json['unit'],
+    );
+  }
+}
+
+class WorkOrderAsset {
+  final String woUitId;
+  final String AssetName;
+
+  WorkOrderAsset({required this.woUitId, required this.AssetName});
+
+  factory WorkOrderAsset.fromJson(Map<String, dynamic> json) {
+    return WorkOrderAsset(
+      woUitId: json['id_asset'],
+      AssetName: json['asset_name'],
+    );
+  }
+}
+
+class WorkOrderPriority {
+  final String priorityId;
+  final String priority;
+
+  WorkOrderPriority({required this.priorityId, required this.priority});
+
+  factory WorkOrderPriority.fromJson(Map<String, dynamic> json) {
+    return WorkOrderPriority(
+      priorityId: json['priority_id'],
+      priority: json['priority'],
+    );
+  }
+}
+
 class _TroubleShootingState extends State<TroubleShooting> {
+  List<WorkOrderUnit> workOrderUnitList = [];
+  List<WorkOrderPriority> workOrderPriorityList = [];
+  List<WorkOrderAsset> workOrderAssetList = [];
   String woId = '';
   String priority = '';
   String description = '';
   List<dynamic> jsonResponse = [];
   List<dynamic> jsonResponseCheck = [];
 
+  WorkOrderUnit? selectedStatus;
+  WorkOrderAsset? selectedAsset;
+  WorkOrderPriority? selectedPriority;
   Color getColorForPriority(String priority) {
     if (priority == 'high') {
       return Colors.red;
@@ -35,12 +86,13 @@ class _TroubleShootingState extends State<TroubleShooting> {
     super.initState();
     fetchWorkOrderDetailsMessages(widget.insertId);
     fetchtroubleShooting(widget.insertId);
+    fetchWorkOrderUnitList();
   }
 
   Future<void> fetchWorkOrderDetailsMessages(String insertId) async {
     final url = Uri.parse(
         // 'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/workorders/Comments_get/$woId');
-        'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/workorders/Comments_get/383');
+        'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/workorders/Comments_get/$insertId');
     final response = await http.get(url);
 
     if (response.statusCode == 200) {
@@ -82,6 +134,52 @@ class _TroubleShootingState extends State<TroubleShooting> {
       }
     } else {
       // Manejar el error de la petición, si es necesario.
+    }
+  }
+
+  Future<void> fetchWorkOrderUnitList() async {
+    final response = await http.get(
+      Uri.parse(
+          'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/workorders/Catalog_get'),
+    );
+    print(response.body);
+    if (response.statusCode == 200) {
+      final List<dynamic> data = json.decode(response.body);
+      final List<WorkOrderUnit> statuses = (data.isNotEmpty && data[0] is List)
+          ? (data[0] as List).map((e) => WorkOrderUnit.fromJson(e)).toList()
+          : [];
+      final List<WorkOrderPriority> priorities = (data.isNotEmpty &&
+              data[1] is List)
+          ? (data[1] as List).map((e) => WorkOrderPriority.fromJson(e)).toList()
+          : [];
+
+      setState(() {
+        workOrderUnitList = statuses;
+        workOrderPriorityList = priorities;
+      });
+    } else {
+      throw Exception('Failed to load work order data');
+    }
+  }
+
+  Future<void> fetchWorkOrderAssetList(String siteId) async {
+    http.Response response = await http.post(
+        Uri.parse(
+            'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/workorders/Unit_asset_post'),
+        body: {
+          "site_id": siteId,
+        });
+    print(response.statusCode);
+    if (response.statusCode == 200) {
+      final List<dynamic> data = json.decode(response.body);
+      final List<WorkOrderAsset> assets =
+          data.map((e) => WorkOrderAsset.fromJson(e)).toList();
+
+      setState(() {
+        workOrderAssetList = assets;
+      });
+    } else {
+      throw Exception('Failed to load work order assets');
     }
   }
 
@@ -194,11 +292,11 @@ class _TroubleShootingState extends State<TroubleShooting> {
                         ),
                       ),
                       Text(
-                        this.woId,
+                        widget.insertId,
                         style: TextStyle(
                           color: Color.fromARGB(255, 5, 5, 5),
                           fontWeight: FontWeight.w500,
-                          fontSize: 30,
+                          fontSize: 35,
                         ),
                       ),
                     ],
@@ -219,7 +317,7 @@ class _TroubleShootingState extends State<TroubleShooting> {
                   ),
                   SizedBox(width: 10),
                   Text(
-                    'Troubleshooting***',
+                    'Troubleshooting',
                     style: TextStyle(
                       color: Colors.black,
                       fontWeight: FontWeight.w500,
@@ -228,6 +326,39 @@ class _TroubleShootingState extends State<TroubleShooting> {
                   ),
                 ],
               ),
+            ),
+            DropdownButtonFormField<WorkOrderUnit>(
+              decoration: const InputDecoration(
+                labelText: 'Category',
+                border: OutlineInputBorder(),
+                contentPadding:
+                    EdgeInsets.symmetric(vertical: 16.0, horizontal: 1.0),
+                // Puedes personalizar el estilo de la etiqueta aquí si es necesario.
+              ),
+              value: selectedStatus,
+              onChanged: (WorkOrderUnit? newValue) {
+                setState(() {
+                  selectedStatus = newValue;
+                });
+
+                if (newValue != null) {
+                  fetchWorkOrderAssetList(newValue.woStatusId);
+                  // Cuando obtengas la lista de activos, selecciona el primero por defecto
+                  if (workOrderAssetList.isNotEmpty) {
+                    setState(() {
+                      selectedAsset = workOrderAssetList[0];
+                    });
+                  }
+                }
+              },
+              items: workOrderUnitList.map<DropdownMenuItem<WorkOrderUnit>>(
+                (WorkOrderUnit value) {
+                  return DropdownMenuItem<WorkOrderUnit>(
+                    value: value,
+                    child: Text(value.description),
+                  );
+                },
+              ).toList(),
             ),
             Expanded(
               child: SingleChildScrollView(
