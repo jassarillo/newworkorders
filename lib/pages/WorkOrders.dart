@@ -300,7 +300,7 @@ class WorkOrderCard extends StatelessWidget {
                   ),
                 ],
               ),
-              subtitle: Text(longitude + ',' + latitude + woDescription),
+              subtitle: Text(woDescription),
             ),
           ],
         ),
