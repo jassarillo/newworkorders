@@ -10,12 +10,21 @@ class WODetail extends StatefulWidget {
   final String woId;
   final String priority;
   final String idUser;
-
+  final String latitude;
+  final String longitude;
+  final String user_type_id;
+  final String site_id;
+  
   const WODetail({
     Key? key,
     required this.woId,
     required this.priority,
     required this.idUser,
+    required this.latitude,
+    required this.longitude,
+    required this.user_type_id,
+    required this.site_id,
+    
   }) : super(key: key);
 
   @override
@@ -37,9 +46,9 @@ Color getColorForPriority(String priority) {
   }
 }
 
-Future<Map<String, dynamic>> fetchWorkOrderDetails(String woId) async {
+Future<Map<String, dynamic>> fetchWorkOrderDetails(String woId, String idUser, String user_type_id) async {
   final url = Uri.parse(
-      'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/workorders/Wo_get/$woId/4');
+      'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/workorders/Wo_get/$woId/$user_type_id/$idUser');
   final response = await http.get(url);
   //print('$woId');
   //print(response.body);
@@ -62,6 +71,7 @@ class _WODetailState extends State<WODetail> {
     super.initState();
     idUser = widget.idUser;
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -70,7 +80,8 @@ class _WODetailState extends State<WODetail> {
         iconTheme: const IconThemeData(color: Colors.black),
         centerTitle: true,
         leading: PopupMenuButton<String>(
-icon: const Icon(Icons.menu),          onSelected: (value) {
+          icon: const Icon(Icons.menu),
+          onSelected: (value) {
             if (value == 'login') {
               // Implementa la lógica para manejar la opción "Login"
             } else if (value == 'back') {
@@ -96,7 +107,7 @@ icon: const Icon(Icons.menu),          onSelected: (value) {
         ],
       ),
       body: FutureBuilder<Map<String, dynamic>>(
-        future: fetchWorkOrderDetails(widget.woId),
+        future: fetchWorkOrderDetails(widget.woId, widget.idUser, widget.user_type_id),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(
@@ -370,9 +381,11 @@ icon: const Icon(Icons.menu),          onSelected: (value) {
                         context,
                         MaterialPageRoute(
                             builder: (context) => CheckIn(
-                                  woId: woId,
-                                  idUser: this.idUser!
-                                )));
+                                woId: woId,
+                                idUser: this.idUser!,
+                                latitudeA: widget.latitude,
+                                longitudeA: widget.longitude,
+                                site_id: widget.site_id)));
                   },
                   color: const Color.fromARGB(255, 39, 17, 243),
                   child: const Row(

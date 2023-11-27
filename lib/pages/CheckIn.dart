@@ -7,8 +7,17 @@ import 'package:permission_handler/permission_handler.dart';
 class CheckIn extends StatefulWidget {
   final String woId;
   final String idUser;
-
-  const CheckIn({required this.woId, required this.idUser, Key? key})
+  final String latitudeA;
+  final String longitudeA;
+  final String site_id;
+  const CheckIn(
+      {required this.woId,
+      required this.idUser,
+      required this.latitudeA,
+      required this.longitudeA,
+      required this.site_id,
+      
+      Key? key})
       : super(key: key);
 
   @override
@@ -52,11 +61,13 @@ class _CheckInState extends State<CheckIn> {
   Future<void> fetchDropdownItems() async {
     final response = await http.get(
       Uri.parse(
-          'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/workorders/Shift_get/'),
+          'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/workorders/Shift_get/' +
+              widget.woId),
     );
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
+      //print(data);
       if (data is List) {
         final items = data[0] as List;
         final workOrderUnits = items.map((item) {
@@ -102,11 +113,16 @@ class _CheckInState extends State<CheckIn> {
     try {
       final Position position = await Geolocator.getCurrentPosition(
           desiredAccuracy: LocationAccuracy.high);
+      double targetLatitude = double.parse(widget.latitudeA);
+      double targetLongitude = double.parse(widget.longitudeA);
       print(position.latitude);
       print(position.longitude);
       // Calcula la distancia entre la ubicación actual y la ubicación específica
       double distanceInMeters = await Geolocator.distanceBetween(
-          position.latitude, position.longitude, 19.426314, -98.877709);
+          position.latitude,
+          position.longitude,
+          targetLatitude,
+          targetLongitude);
 
       print('Distancia aproximada: $distanceInMeters metros');
 
@@ -173,7 +189,7 @@ class _CheckInState extends State<CheckIn> {
     }
   }
 
-  Future<void> submitForm(String idUser) async {
+  Future<void> submitForm(String idUser, String site_id) async {
     try {
       final Position position = await Geolocator.getCurrentPosition(
           desiredAccuracy: LocationAccuracy.high);
@@ -193,6 +209,7 @@ class _CheckInState extends State<CheckIn> {
         'longitude': longitude,
         'proximity': distanceInMeters.toString(), // Convertimos a String
         'idUser': widget.idUser,
+        'site_id': widget.site_id
       };
 
       final response = await http.post(
@@ -400,7 +417,7 @@ class _CheckInState extends State<CheckIn> {
                         ),
                         DropdownButtonFormField<WorkOrderUnit>(
                           decoration: const InputDecoration(
-                            labelText: 'Seleccione',
+                            labelText: 'Choose',
                             border: OutlineInputBorder(),
                             contentPadding: EdgeInsets.symmetric(
                                 vertical: 16.0, horizontal: 1.0),
@@ -452,39 +469,39 @@ class _CheckInState extends State<CheckIn> {
                           ),
                         ),
 
-                     ElevatedButton(
-  onPressed: () {
-    if (showCheckbox && isChecked) {
-      // Si el checkbox está activado, verificar el campo de comentarios
-      if (commentController.text.isEmpty) {
-        // El campo de comentarios está vacío, muestra un mensaje de error
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: Text("Error"),
-              content: Text("You need add a comment!"),
-              actions: <Widget>[
-                TextButton(
-                  child: Text("Accept"),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ],
-            );
-          },
-        );
-        return; // Salir de la función si hay un error
-      }
-    }
+                        ElevatedButton(
+                          onPressed: () {
+                            if (showCheckbox && isChecked) {
+                              // Si el checkbox está activado, verificar el campo de comentarios
+                              if (commentController.text.isEmpty) {
+                                // El campo de comentarios está vacío, muestra un mensaje de error
+                                showDialog(
+                                  context: context,
+                                  builder: (BuildContext context) {
+                                    return AlertDialog(
+                                      title: Text("Error"),
+                                      content: Text("You need add a comment!"),
+                                      actions: <Widget>[
+                                        TextButton(
+                                          child: Text("Accept"),
+                                          onPressed: () {
+                                            Navigator.of(context).pop();
+                                          },
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                );
+                                return; // Salir de la función si hay un error
+                              }
+                            }
 
-    // Continuar con la lógica de envío del formulario
-    requestLocationPermission();
-    submitForm(widget.idUser);
-  },
-  child: Text('Punch In'),
-),
+                            // Continuar con la lógica de envío del formulario
+                            requestLocationPermission();
+                            submitForm(widget.idUser, widget.site_id);
+                          },
+                          child: Text('Punch In'),
+                        ),
 
                         /*Text(latitude),
                         Text(longitude),*/

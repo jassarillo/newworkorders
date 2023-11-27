@@ -26,7 +26,7 @@ class _WorkOrdersState extends State<WorkOrders> {
 
   Future<void> fetchWorkOrders() async {
     final response = await http.get(Uri.parse(
-        'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/workorders/Wo_get/0/${widget.user_type_id}'));
+        'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/workorders/Wo_get/0/${widget.user_type_id}/${widget.idUser}'));
     if (response.statusCode == 200) {
       print(response.body);
       final List<dynamic> data = json.decode(response.body);
@@ -181,7 +181,11 @@ class _WorkOrdersState extends State<WorkOrders> {
               dueTime: workOrder['due_time'] as String,
               woId: workOrder['wo_id'] as String,
               descriptionStatus: workOrder['description'] as String,
+              latitude: workOrder['latitude'] as String,
+              longitude: workOrder['length'] as String,
+              site_id: workOrder['site_id'] as String,
               idUser: widget.idUser,
+              user_type_id: widget.user_type_id,
             ),
         ],
       ),
@@ -212,6 +216,10 @@ class WorkOrderCard extends StatelessWidget {
   final String woDescription;
   final String dueTime;
   final String idUser;
+  final String longitude;
+  final String latitude;
+  final String user_type_id;
+  final String site_id;
 
   const WorkOrderCard({
     Key? key,
@@ -221,6 +229,10 @@ class WorkOrderCard extends StatelessWidget {
     required this.woDescription,
     required this.dueTime,
     required this.idUser,
+    required this.longitude,
+    required this.latitude,
+    required this.user_type_id,
+    required this.site_id,
   }) : super(key: key);
 
   @override
@@ -231,7 +243,12 @@ class WorkOrderCard extends StatelessWidget {
           context,
           MaterialPageRoute(
             builder: (context) =>
-                WODetail(woId: woId, priority: 'high', idUser: this.idUser),
+                WODetail(woId: woId, priority: 'high', idUser: this.idUser, 
+                latitude: this.latitude, 
+                longitude: this.longitude,
+                user_type_id: this.user_type_id,
+                site_id: this.site_id
+                ),
           ),
         );
       },
@@ -267,7 +284,7 @@ class WorkOrderCard extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    '$descriptionStatus ',
+                       '$descriptionStatus'  ,
                     style: const TextStyle(color: Colors.blue),
                   ),
                   Container(
@@ -283,7 +300,7 @@ class WorkOrderCard extends StatelessWidget {
                   ),
                 ],
               ),
-              subtitle: Text(woDescription),
+              subtitle: Text(longitude + ',' + latitude + woDescription),
             ),
           ],
         ),
