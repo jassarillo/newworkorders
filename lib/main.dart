@@ -53,12 +53,15 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
         // ignore: use_build_context_synchronously
         final String idUser = responseData['idUser'];
         final String user_type_id = responseData['user_type_id'];
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-              builder: (context) =>
-                  WorkOrders(idUser: idUser, user_type_id: user_type_id)),
-        );
+        if (responseData['user_type_id'] == "3" ||
+            responseData['user_type_id'] == "7" ) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) =>
+                    WorkOrders(idUser: idUser, user_type_id: user_type_id)),
+          );
+        }
       } else if (responseData['estatus'] == "2020") {
         const errorMessage = "User or password failed.";
         showDialog(
