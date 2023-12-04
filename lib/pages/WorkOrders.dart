@@ -243,7 +243,9 @@ class WorkOrderCard extends StatelessWidget {
           context,
           MaterialPageRoute(
             builder: (context) =>
-                WODetail(woId: woId, priority: 'high', idUser: this.idUser, 
+                WODetail(woId: woId, 
+                priority: 'high', 
+                idUser: this.idUser, 
                 latitude: this.latitude, 
                 longitude: this.longitude,
                 user_type_id: this.user_type_id,

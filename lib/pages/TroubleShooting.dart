@@ -3,29 +3,26 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 class TroubleShooting extends StatefulWidget {
-  //final String woId;
   final String insertId;
   final String idUser;
   const TroubleShooting(
       {required this.insertId, required this.idUser, Key? key})
       : super(key: key);
 
-  //TroubleShooting({required this.insertId, Key? key}) : super(key: key);
-
   @override
   State<TroubleShooting> createState() => _TroubleShootingState();
 }
 
 class WorkOrderUnit {
-  final String woStatusId;
-  final String description;
+  final String title_id;
+  final String title_description;
 
-  WorkOrderUnit({required this.woStatusId, required this.description});
+  WorkOrderUnit({required this.title_id, required this.title_description});
 
   factory WorkOrderUnit.fromJson(Map<String, dynamic> json) {
     return WorkOrderUnit(
-      woStatusId: json['site_id'],
-      description: json['unit'],
+      title_id: json['title_id'],
+      title_description: json['title_description'],
     );
   }
 }
@@ -84,38 +81,15 @@ class _TroubleShootingState extends State<TroubleShooting> {
   @override
   void initState() {
     super.initState();
-    fetchWorkOrderDetailsMessages(widget.insertId);
     fetchtroubleShooting(widget.insertId);
     fetchWorkOrderUnitList();
-  }
-
-  Future<void> fetchWorkOrderDetailsMessages(String insertId) async {
-    final url = Uri.parse(
-        // 'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/workorders/Comments_get/$woId');
-        'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/workorders/Comments_get/$insertId');
-    final response = await http.get(url);
-
-    if (response.statusCode == 200) {
-      print(response.body);
-      jsonResponse = json.decode(response.body);
-      if (jsonResponse.length > 1) {
-        final woData = jsonResponse[0][0];
-        // final comments = jsonResponse[1];
-
-        setState(() {
-          this.woId = woId;
-          this.priority = priority;
-          this.description = description;
-        });
-      }
-    }
   }
 
   Future<void> fetchtroubleShooting(String insertId) async {
     final url = Uri.parse(
         'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/workorders/Shift_get/383');
     final response = await http.get(url);
-    print(response);
+
     if (response.statusCode == 200) {
       final dynamic decodedResponse = json.decode(response.body);
 
@@ -133,29 +107,29 @@ class _TroubleShootingState extends State<TroubleShooting> {
         });
       }
     } else {
-      // Manejar el error de la petición, si es necesario.
+      // Handle the request error if necessary.
     }
   }
 
   Future<void> fetchWorkOrderUnitList() async {
     final response = await http.get(
       Uri.parse(
-          'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/workorders/Catalog_get'),
+          'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/troubleshooting/Cat_list_get/408'), //>>>>
     );
-    print(response.body);
+    print("==>>>>"+response.body);
     if (response.statusCode == 200) {
       final List<dynamic> data = json.decode(response.body);
-      final List<WorkOrderUnit> statuses = (data.isNotEmpty && data[0] is List)
-          ? (data[0] as List).map((e) => WorkOrderUnit.fromJson(e)).toList()
-          : [];
-      final List<WorkOrderPriority> priorities = (data.isNotEmpty &&
-              data[1] is List)
-          ? (data[1] as List).map((e) => WorkOrderPriority.fromJson(e)).toList()
+      final List<WorkOrderUnit> statuses = (data.isNotEmpty && data is List)
+          ? data.map((e) => WorkOrderUnit.fromJson(e)).toList()
           : [];
 
       setState(() {
         workOrderUnitList = statuses;
-        workOrderPriorityList = priorities;
+      });
+
+      print('Work Order Units:');
+      workOrderUnitList.forEach((element) {
+        print('${element.title_id}: ${element.title_description}');
       });
     } else {
       throw Exception('Failed to load work order data');
@@ -169,7 +143,7 @@ class _TroubleShootingState extends State<TroubleShooting> {
         body: {
           "site_id": siteId,
         });
-    print(response.statusCode);
+//print("gggg    "+response.body);
     if (response.statusCode == 200) {
       final List<dynamic> data = json.decode(response.body);
       final List<WorkOrderAsset> assets =
@@ -213,39 +187,33 @@ class _TroubleShootingState extends State<TroubleShooting> {
   }
 
   void submitForm() async {
-    // Filtra los elementos seleccionados
     final selectedShifts = jsonResponseCheck
         .expand((shift) => shift)
         .where((shift) => shift['status'] == 't')
         .toList();
 
-    // Prepara la lista de IDs de los elementos seleccionados
     final selectedShiftIds = selectedShifts
         .map<String>((shift) => shift['id_shift'] as String)
         .toList();
 
-    // Puedes imprimir la lista de IDs para verificar
     print('Selected Shift IDs: $selectedShiftIds');
 
-    // URL para la solicitud POST, ajusta según tu API
     final postUrl = Uri.parse('http://tu-api.com/endpoint');
 
     try {
-      // Realiza la solicitud POST
       final response = await http.post(
         postUrl,
         body: json.encode({'selectedShifts': selectedShiftIds}),
         headers: {'Content-Type': 'application/json'},
       );
 
-      // Verifica la respuesta del servidor
       if (response.statusCode == 200) {
-        print('Solicitud POST exitosa');
+        print('Successful POST request');
       } else {
-        print('Error en la solicitud POST: ${response.statusCode}');
+        print('Error in POST request: ${response.statusCode}');
       }
     } catch (error) {
-      print('Error en la solicitud POST: $error');
+      print('Error in POST request: $error');
     }
   }
 
@@ -258,10 +226,9 @@ class _TroubleShootingState extends State<TroubleShooting> {
         centerTitle: true,
         leading: IconButton(
           onPressed: () {
-            Navigator.of(context).pop(); // Esta línea permite retroceder
+            Navigator.of(context).pop();
           },
-          icon: const Icon(
-              Icons.arrow_back), // Cambia el ícono a una flecha hacia atrás
+          icon: const Icon(Icons.arrow_back),
         ),
         actions: [
           IconButton(
@@ -333,7 +300,6 @@ class _TroubleShootingState extends State<TroubleShooting> {
                 border: OutlineInputBorder(),
                 contentPadding:
                     EdgeInsets.symmetric(vertical: 16.0, horizontal: 1.0),
-                // Puedes personalizar el estilo de la etiqueta aquí si es necesario.
               ),
               value: selectedStatus,
               onChanged: (WorkOrderUnit? newValue) {
@@ -342,8 +308,7 @@ class _TroubleShootingState extends State<TroubleShooting> {
                 });
 
                 if (newValue != null) {
-                  fetchWorkOrderAssetList(newValue.woStatusId);
-                  // Cuando obtengas la lista de activos, selecciona el primero por defecto
+                  fetchWorkOrderAssetList(newValue.title_id);
                   if (workOrderAssetList.isNotEmpty) {
                     setState(() {
                       selectedAsset = workOrderAssetList[0];
@@ -355,7 +320,7 @@ class _TroubleShootingState extends State<TroubleShooting> {
                 (WorkOrderUnit value) {
                   return DropdownMenuItem<WorkOrderUnit>(
                     value: value,
-                    child: Text(value.description),
+                    child: Text(value.title_description),
                   );
                 },
               ).toList(),

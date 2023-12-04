@@ -1,10 +1,13 @@
 import 'dart:convert';
 import 'CheckIn.dart';
 import 'Comments.dart';
-import 'Assigness.dart';
+import 'WorkOrders.dart';
+import 'TroubleShooting.dart';
 import 'TroubleShooting.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'subPantallasCheck/Assigness.dart';
+import 'subPantallasCheck/Quotation.dart';
 
 class WODetail extends StatefulWidget {
   final String woId;
@@ -14,7 +17,7 @@ class WODetail extends StatefulWidget {
   final String longitude;
   final String user_type_id;
   final String site_id;
-  
+
   const WODetail({
     Key? key,
     required this.woId,
@@ -24,7 +27,6 @@ class WODetail extends StatefulWidget {
     required this.longitude,
     required this.user_type_id,
     required this.site_id,
-    
   }) : super(key: key);
 
   @override
@@ -46,7 +48,8 @@ Color getColorForPriority(String priority) {
   }
 }
 
-Future<Map<String, dynamic>> fetchWorkOrderDetails(String woId, String idUser, String user_type_id) async {
+Future<Map<String, dynamic>> fetchWorkOrderDetails(
+    String woId, String idUser, String user_type_id) async {
   final url = Uri.parse(
       'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/workorders/Wo_get/$woId/$user_type_id/$idUser');
   final response = await http.get(url);
@@ -79,25 +82,19 @@ class _WODetailState extends State<WODetail> {
         backgroundColor: Colors.white,
         iconTheme: const IconThemeData(color: Colors.black),
         centerTitle: true,
-        leading: PopupMenuButton<String>(
-          icon: const Icon(Icons.menu),
-          onSelected: (value) {
-            if (value == 'login') {
-              // Implementa la lógica para manejar la opción "Login"
-            } else if (value == 'back') {
-              Navigator.of(context).pop();
-            }
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => WorkOrders(
+                  idUser: widget.idUser,
+                  user_type_id: widget.user_type_id,
+                ),
+              ),
+            );
           },
-          itemBuilder: (BuildContext context) => [
-            // const PopupMenuItem<String>(
-            //   value: 'login',
-            //   child: Text('Login'),
-            // ),
-            const PopupMenuItem<String>(
-              value: 'back',
-              child: Text('Work Orders'),
-            ),
-          ],
         ),
         actions: [
           IconButton(
@@ -107,7 +104,8 @@ class _WODetailState extends State<WODetail> {
         ],
       ),
       body: FutureBuilder<Map<String, dynamic>>(
-        future: fetchWorkOrderDetails(widget.woId, widget.idUser, widget.user_type_id),
+        future: fetchWorkOrderDetails(
+            widget.woId, widget.idUser, widget.user_type_id),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(
@@ -120,7 +118,7 @@ class _WODetailState extends State<WODetail> {
           } else if (snapshot.hasData) {
             final workOrderDetails = snapshot.data;
             final woId = workOrderDetails?['wo_id'];
-            final description = workOrderDetails?['description'];
+            final descriptionStatus = workOrderDetails?['description'];
             final priority = workOrderDetails?['priority'];
             final unit = workOrderDetails?['unit'];
             final assetName = workOrderDetails?['asset_name'];
@@ -173,7 +171,7 @@ class _WODetailState extends State<WODetail> {
                               ),
                             ),
                             Text(
-                              description,
+                              descriptionStatus,
                               style: const TextStyle(color: Colors.blue),
                             ),
                           ],
@@ -385,7 +383,9 @@ class _WODetailState extends State<WODetail> {
                                 idUser: this.idUser!,
                                 latitudeA: widget.latitude,
                                 longitudeA: widget.longitude,
-                                site_id: widget.site_id)));
+                                site_id: widget.site_id,
+                                user_type_id: widget.user_type_id,
+                                priority: widget.priority)));
                   },
                   color: const Color.fromARGB(255, 39, 17, 243),
                   child: const Row(
@@ -403,161 +403,164 @@ class _WODetailState extends State<WODetail> {
                     ],
                   ),
                 ),
-                // InkWell(
-                //   onTap: () {
-                //     Navigator.push(
-                //       context,
-                //       MaterialPageRoute(
-                //         builder: (context) => Comments(woId: woId),
-                //       ),
-                //     );
-                //   },
-                //   child: Card(
-                //     child: ListTile(
-                //       leading: Container(
-                //         padding: EdgeInsets.all(8.0),
-                //         decoration: BoxDecoration(
-                //           shape: BoxShape.circle,
-                //           color: Colors.grey,
-                //         ),
-                //         child: Icon(
-                //           Icons.attach_money,
-                //           color: Colors.white,
-                //         ),
-                //       ),
-                //       title: Wrap(
-                //         alignment: WrapAlignment.spaceBetween,
-                //         runSpacing: 2,
-                //         children: <Widget>[
-                //           Text(
-                //             'Quotation',
-                //             style: TextStyle(
-                //               color: Colors.black,
-                //               fontWeight: FontWeight.bold,
-                //               fontSize: 20,
-                //             ),
-                //           ),
-                //         ],
-                //       ),
-                //       subtitle: Text('Reported quotations'),
-                //       trailing: Icon(
-                //         Icons.arrow_forward,
-                //         color: Color.fromARGB(255, 124, 122, 122),
-                //       ),
-                //     ),
-                //   ),
-                // ),
-                // InkWell(
-                //   onTap: () {
-                //     Navigator.push(
-                //       context,
-                //       MaterialPageRoute(
-                //         builder: (context) => Comments(woId: woId),
-                //       ),
-                //     );
-                //   },
-                //   child: const Card(
-                //     child: ListTile(
-                //       leading: Icon(
-                //         Icons.comment,
-                //         color: Color.fromARGB(255, 124, 122, 122),
-                //       ),
-                //       title: Wrap(
-                //         alignment: WrapAlignment.spaceBetween,
-                //         runSpacing: 2,
-                //         children: <Widget>[
-                //           Text(
-                //             'Comments',
-                //             style: TextStyle(
-                //               color: Colors.black,
-                //               fontWeight: FontWeight.bold,
-                //               fontSize: 20,
-                //             ),
-                //           ),
-                //         ],
-                //       ),
-                //       subtitle: Text('Texxt'),
-                //       trailing: Icon(
-                //         Icons.arrow_forward,
-                //         color: Color.fromARGB(255, 124, 122, 122),
-                //       ),
-                //     ),
-                //   ),
-                // ),
-                // InkWell(
-                //   onTap: () {
-                //     Navigator.push(
-                //       context,
-                //       MaterialPageRoute(
-                //         builder: (context) => TroubleShooting(insertId: '1'),
-                //       ),
-                //     );
-                //   },
-                //   child: const Card(
-                //     child: ListTile(
-                //       leading: Icon(
-                //         Icons.list,
-                //         color: Color.fromARGB(255, 124, 122, 122),
-                //       ),
-                //       title: Wrap(
-                //         alignment: WrapAlignment.spaceBetween,
-                //         runSpacing: 2,
-                //         children: <Widget>[
-                //           Text(
-                //             'TroubleShooting',
-                //             style: TextStyle(
-                //               color: Colors.black,
-                //               fontWeight: FontWeight.bold,
-                //               fontSize: 20,
-                //             ),
-                //           ),
-                //         ],
-                //       ),
-                //       subtitle: Text('woDescription ccdcd'),
-                //       trailing: Icon(
-                //         Icons.arrow_forward,
-                //         color: Color.fromARGB(255, 124, 122, 122),
-                //       ),
-                //     ),
-                //   ),
-                // ),
-                // InkWell(
-                //   onTap: () {
-                //     Navigator.push(
-                //       context,
-                //       MaterialPageRoute(
-                //         builder: (context) => Assigness(woId: woId),
-                //       ),
-                //     );
-                //   },
-                //   child: const Card(
-                //     child: ListTile(
-                //       leading: Icon(
-                //         Icons.person,
-                //         color: Color.fromARGB(255, 124, 122, 122),
-                //       ),
-                //       title: Wrap(
-                //         alignment: WrapAlignment.spaceBetween,
-                //         runSpacing: 2,
-                //         children: <Widget>[
-                //           Text(
-                //             'Assigness',
-                //             style: TextStyle(
-                //               color: Colors.black,
-                //               fontWeight: FontWeight.bold,
-                //               fontSize: 20,
-                //             ),
-                //           ),
-                //         ],
-                //       ),
-                //       subtitle: Text('woDescription ccdcd'),
-                //       trailing: Icon(
-                //         Icons.arrow_forward,
-                //         color: Color.fromARGB(255, 124, 122, 122),
-                //       ),
-                //     ),
-                //   ),
-                // ),
+                InkWell(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => Comments(woId: woId),
+                      ),
+                    );
+                  },
+                  child: Card(
+                    child: ListTile(
+                      leading: Container(
+                        padding: EdgeInsets.all(8.0),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.grey,
+                        ),
+                        child: Icon(
+                          Icons.attach_money,
+                          color: Colors.white,
+                        ),
+                      ),
+                      title: Wrap(
+                        alignment: WrapAlignment.spaceBetween,
+                        runSpacing: 2,
+                        children: <Widget>[
+                          Text(
+                            'Quotation',
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 20,
+                            ),
+                          ),
+                        ],
+                      ),
+                      subtitle: Text('Reported quotations'),
+                      trailing: Icon(
+                        Icons.arrow_forward,
+                        color: Color.fromARGB(255, 124, 122, 122),
+                      ),
+                    ),
+                  ),
+                ),
+                InkWell(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => Comments(woId: woId),
+                      ),
+                    );
+                  },
+                  child: const Card(
+                    child: ListTile(
+                      leading: Icon(
+                        Icons.comment,
+                        color: Color.fromARGB(255, 124, 122, 122),
+                      ),
+                      title: Wrap(
+                        alignment: WrapAlignment.spaceBetween,
+                        runSpacing: 2,
+                        children: <Widget>[
+                          Text(
+                            'Comments',
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 20,
+                            ),
+                          ),
+                        ],
+                      ),
+                      subtitle: Text('Texxt'),
+                      trailing: Icon(
+                        Icons.arrow_forward,
+                        color: Color.fromARGB(255, 124, 122, 122),
+                      ),
+                    ),
+                  ),
+                ),
+                InkWell(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => Assigness(woId: woId),
+                      ),
+                    );
+                  },
+                  child: const Card(
+                    child: ListTile(
+                      leading: Icon(
+                        Icons.person,
+                        color: Color.fromARGB(255, 124, 122, 122),
+                      ),
+                      title: Wrap(
+                        alignment: WrapAlignment.spaceBetween,
+                        runSpacing: 2,
+                        children: <Widget>[
+                          Text(
+                            'Assigness',
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 20,
+                            ),
+                          ),
+                        ],
+                      ),
+                      subtitle: Text('woDescription ccdcd'),
+                      trailing: Icon(
+                        Icons.arrow_forward,
+                        color: Color.fromARGB(255, 124, 122, 122),
+                      ),
+                    ),
+                  ),
+                ),
+                InkWell(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => TroubleShooting(
+                          insertId: woId.toString(),
+                              idUser: widget.idUser
+                          ),
+                      ),
+                    );
+                  },
+                  child: const Card(
+                    child: ListTile(
+                      leading: Icon(
+                        Icons.person,
+                        color: Color.fromARGB(255, 124, 122, 122),
+                      ),
+                      title: Wrap(
+                        alignment: WrapAlignment.spaceBetween,
+                        runSpacing: 2,
+                        children: <Widget>[
+                          Text(
+                            'TroubleShoting',
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 20,
+                            ),
+                          ),
+                        ],
+                      ),
+                      subtitle: Text('woDescription ccdcd'),
+                      trailing: Icon(
+                        Icons.arrow_forward,
+                        color: Color.fromARGB(255, 124, 122, 122),
+                      ),
+                    ),
+                  ),
+                ),
               ],
             );
           } else {

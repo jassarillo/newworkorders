@@ -166,7 +166,7 @@ class _AddNewOrderState extends State<AddNewOrder> {
                 content: Text(exitMessage),
                 actions: <Widget>[
                   TextButton(
-                    child: const Text("Aceptar"),
+                    child: const Text("Accept"),
                     onPressed: () {
                       Navigator.of(context).pop(); // Cierra el diálogo
                       // Navega a TroubleShooting.dart con insertId como parámetro
@@ -192,10 +192,10 @@ class _AddNewOrderState extends State<AddNewOrder> {
               return AlertDialog(
                 title: const Text("Error"),
                 content: const Text(
-                    "Error al cargar las imágenes y guardar la orden."),
+                    "Error to upload images!"),
                 actions: <Widget>[
                   TextButton(
-                    child: const Text("Aceptar"),
+                    child: const Text("Accept"),
                     onPressed: () {
                       Navigator.of(context).pop();
                     },
@@ -240,7 +240,7 @@ class _AddNewOrderState extends State<AddNewOrder> {
                 const Text("Please select at least one image before saving."),
             actions: <Widget>[
               TextButton(
-                child: const Text("Aceptar"),
+                child: const Text("Accept"),
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
@@ -489,7 +489,7 @@ class _AddNewOrderState extends State<AddNewOrder> {
                 decoration: const InputDecoration(
                   labelText: 'Problem',
                   border: OutlineInputBorder(),
-                  hintText: 'Escribe aquí...',
+                  hintText: 'Write here...',
                 ),
               ),
               const SizedBox(height: 10),
@@ -501,12 +501,12 @@ class _AddNewOrderState extends State<AddNewOrder> {
                       context: context,
                       builder: (BuildContext context) {
                         return AlertDialog(
-                          title: const Text("Límite de imágenes alcanzado"),
+                          title: const Text("Limit of images reached"),
                           content: const Text(
-                              "No se pueden seleccionar más de 5 imágenes."),
+                              "No more than 5 images can be selected."),
                           actions: <Widget>[
                             TextButton(
-                              child: const Text("Cerrar"),
+                              child: const Text("Accept"),
                               onPressed: () {
                                 Navigator.of(context).pop();
                               },
@@ -573,7 +573,7 @@ class _AddNewOrderState extends State<AddNewOrder> {
                   children: [
                     SizedBox(width: 10),
                     Text(
-                      'Guardar Work Order',
+                      'Save Work Order',
                       style: TextStyle(color: Colors.white),
                     ),
                   ],

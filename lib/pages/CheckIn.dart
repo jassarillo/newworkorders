@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'WODetail.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:geolocator/geolocator.dart';
@@ -10,13 +11,16 @@ class CheckIn extends StatefulWidget {
   final String latitudeA;
   final String longitudeA;
   final String site_id;
+  final String priority;
+  final String user_type_id;
   const CheckIn(
       {required this.woId,
       required this.idUser,
       required this.latitudeA,
       required this.longitudeA,
       required this.site_id,
-      
+      required this.priority,
+      required this.user_type_id,
       Key? key})
       : super(key: key);
 
@@ -289,11 +293,27 @@ class _CheckInState extends State<CheckIn> {
         backgroundColor: Colors.white,
         iconTheme: const IconThemeData(color: Colors.black),
         centerTitle: true,
-        leading: IconButton(
-          onPressed: () {
-            Navigator.of(context).pop();
+        leading: InkWell(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => WODetail(
+                  woId: widget.woId,
+                  priority: 'high', // Specify the appropriate priority
+                  idUser: widget.idUser,
+                  latitude: widget.latitudeA,
+                  longitude: widget.longitudeA,
+                  user_type_id: widget.user_type_id,
+                  site_id: widget.site_id,
+                ),
+              ),
+            );
           },
-          icon: const Icon(Icons.arrow_back),
+          child: const Padding(
+            padding: EdgeInsets.all(8.0),
+            child: Icon(Icons.arrow_back),
+          ),
         ),
         actions: [
           IconButton(
@@ -416,11 +436,12 @@ class _CheckInState extends State<CheckIn> {
                           ),
                         ),
                         DropdownButtonFormField<WorkOrderUnit>(
+                          padding: const EdgeInsets.all(10),
                           decoration: const InputDecoration(
                             labelText: 'Choose',
                             border: OutlineInputBorder(),
                             contentPadding: EdgeInsets.symmetric(
-                                vertical: 16.0, horizontal: 1.0),
+                                vertical: 12.0, horizontal: 5.0),
                           ),
                           value: selectedOption,
                           onChanged: (WorkOrderUnit? newValue) {
@@ -435,7 +456,10 @@ class _CheckInState extends State<CheckIn> {
                             (WorkOrderUnit value) {
                               return DropdownMenuItem<WorkOrderUnit>(
                                 value: value,
-                                child: Text(value.description),
+                                child: Padding(
+                                  padding: EdgeInsets.only(left: 5.0),
+                                  child: Text(value.description),
+                                ),
                               );
                             },
                           ).toList(),
@@ -459,12 +483,16 @@ class _CheckInState extends State<CheckIn> {
                         Visibility(
                           visible:
                               showCheckbox && selectedOption?.idShift == "4",
-                          child: TextField(
-                            maxLines: 3,
-                            controller: commentController,
-                            decoration: InputDecoration(
-                              labelText: 'Write a comment',
-                              border: OutlineInputBorder(),
+                          child: Container(
+                            padding:
+                                EdgeInsets.all(10.0), // Set the padding here
+                            child: TextField(
+                              maxLines: 3,
+                              controller: commentController,
+                              decoration: InputDecoration(
+                                labelText: 'Write a comment',
+                                border: OutlineInputBorder(),
+                              ),
                             ),
                           ),
                         ),
