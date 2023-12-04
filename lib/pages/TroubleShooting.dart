@@ -59,64 +59,26 @@ class _TroubleShootingState extends State<TroubleShooting> {
   List<WorkOrderUnit> workOrderUnitList = [];
   List<WorkOrderPriority> workOrderPriorityList = [];
   List<WorkOrderAsset> workOrderAssetList = [];
-  String woId = '';
-  String priority = '';
-  String description = '';
-  List<dynamic> jsonResponse = [];
-  List<dynamic> jsonResponseCheck = [];
+  List<Map<String, String>> jsonResponseCheck = [];
 
   WorkOrderUnit? selectedStatus;
   WorkOrderAsset? selectedAsset;
   WorkOrderPriority? selectedPriority;
-  Color getColorForPriority(String priority) {
-    if (priority == 'high') {
-      return Colors.red;
-    } else if (priority == 'medium') {
-      return Colors.yellow;
-    } else {
-      return Colors.green;
-    }
-  }
 
   @override
   void initState() {
     super.initState();
-    fetchtroubleShooting(widget.insertId);
     fetchWorkOrderUnitList();
-  }
-
-  Future<void> fetchtroubleShooting(String insertId) async {
-    final url = Uri.parse(
-        'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/workorders/Shift_get/383');
-    final response = await http.get(url);
-
-    if (response.statusCode == 200) {
-      final dynamic decodedResponse = json.decode(response.body);
-
-      if (decodedResponse is List) {
-        setState(() {
-          jsonResponseCheck = List<List<Map<String, String>>>.from(
-            decodedResponse.map(
-              (shift) => List<Map<String, String>>.from(
-                (shift as List).map(
-                  (item) => Map<String, String>.from(item),
-                ),
-              ),
-            ),
-          );
-        });
-      }
-    } else {
-      // Handle the request error if necessary.
-    }
   }
 
   Future<void> fetchWorkOrderUnitList() async {
     final response = await http.get(
       Uri.parse(
-          'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/troubleshooting/Cat_list_get/408'), //>>>>
+          'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/troubleshooting/Cat_list_get/408'), //Primer select
     );
-    print("==>>>>"+response.body);
+
+    print("==>>>>" + response.body);
+
     if (response.statusCode == 200) {
       final List<dynamic> data = json.decode(response.body);
       final List<WorkOrderUnit> statuses = (data.isNotEmpty && data is List)
@@ -137,13 +99,14 @@ class _TroubleShootingState extends State<TroubleShooting> {
   }
 
   Future<void> fetchWorkOrderAssetList(String siteId) async {
-    http.Response response = await http.post(
-        Uri.parse(
-            'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/workorders/Unit_asset_post'),
-        body: {
-          "site_id": siteId,
-        });
-//print("gggg    "+response.body);
+    final response = await http.post(
+      Uri.parse(
+          'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/workorders/Unit_asset_post'),
+      body: {
+        "site_id": siteId,
+      },
+    );
+
     if (response.statusCode == 200) {
       final List<dynamic> data = json.decode(response.body);
       final List<WorkOrderAsset> assets =
@@ -157,17 +120,42 @@ class _TroubleShootingState extends State<TroubleShooting> {
     }
   }
 
-  List<Widget> buildCheckboxList() {
-    if (jsonResponseCheck.length < 1) {
-      return [];
+  Future<void> fetchtroubleShooting(String insertId, String titleId) async {
+    final postUrl = Uri.parse(
+        'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/troubleshooting/List_questions_post');//preguntas de los checks
+
+    final response = await http.post(
+      postUrl,
+      body: {
+        'tbs_title': titleId,
+        'wo_id': insertId,
+      },
+    );
+
+    print(response.body);
+    if (response.statusCode == 200) {
+      final dynamic decodedResponse = json.decode(response.body);
+
+      if (decodedResponse is Map<String, dynamic> &&
+          decodedResponse.containsKey('getQuestions')) {
+        setState(() {
+          jsonResponseCheck = List<Map<String, String>>.from(
+            decodedResponse['getQuestions'].map<Map<String, String>>(
+              (question) => Map<String, String>.from(question),
+            ),
+          );
+        });
+      }
+    } else {
+      // Handle the request error if necessary.
     }
+  }
 
-    final shifts = jsonResponseCheck[0];
-
-    return shifts.map<Widget>((shift) {
-      final idShift = shift['id_shift'] as String;
-      final description = shift['description'] as String;
-      bool isChecked = shift['status'] == 't';
+  List<Widget> buildCheckboxList() {
+    return jsonResponseCheck.map<Widget>((question) {
+      final tbsId = question['tbs_id'] as String;
+      final description = question['question_description'] as String;
+      bool isChecked = false; // Inicializar según la lógica de tu aplicación
 
       return CheckboxListTile(
         controlAffinity: ListTileControlAffinity.leading,
@@ -179,7 +167,7 @@ class _TroubleShootingState extends State<TroubleShooting> {
         onChanged: (bool? value) {
           setState(() {
             isChecked = value ?? false;
-            shift['status'] = isChecked ? 't' : 'f';
+            // Agregar lógica según tu aplicación
           });
         },
       );
@@ -187,34 +175,17 @@ class _TroubleShootingState extends State<TroubleShooting> {
   }
 
   void submitForm() async {
-    final selectedShifts = jsonResponseCheck
-        .expand((shift) => shift)
-        .where((shift) => shift['status'] == 't')
+    final selectedQuestions = jsonResponseCheck
+        .where((question) =>  true)
         .toList();
 
-    final selectedShiftIds = selectedShifts
-        .map<String>((shift) => shift['id_shift'] as String)
+    final selectedQuestionIds = selectedQuestions
+        .map<String>((question) => question['tbs_id']!)
         .toList();
 
-    print('Selected Shift IDs: $selectedShiftIds');
+    print('gggg  - Selected Question IDs: $selectedQuestionIds');
 
-    final postUrl = Uri.parse('http://tu-api.com/endpoint');
-
-    try {
-      final response = await http.post(
-        postUrl,
-        body: json.encode({'selectedShifts': selectedShiftIds}),
-        headers: {'Content-Type': 'application/json'},
-      );
-
-      if (response.statusCode == 200) {
-        print('Successful POST request');
-      } else {
-        print('Error in POST request: ${response.statusCode}');
-      }
-    } catch (error) {
-      print('Error in POST request: $error');
-    }
+    // Agregar lógica para la solicitud POST según tu aplicación
   }
 
   @override
@@ -295,6 +266,7 @@ class _TroubleShootingState extends State<TroubleShooting> {
               ),
             ),
             DropdownButtonFormField<WorkOrderUnit>(
+              padding: const EdgeInsets.all(10),
               decoration: const InputDecoration(
                 labelText: 'Category',
                 border: OutlineInputBorder(),
@@ -308,7 +280,9 @@ class _TroubleShootingState extends State<TroubleShooting> {
                 });
 
                 if (newValue != null) {
+                  fetchtroubleShooting(widget.insertId, newValue.title_id);
                   fetchWorkOrderAssetList(newValue.title_id);
+
                   if (workOrderAssetList.isNotEmpty) {
                     setState(() {
                       selectedAsset = workOrderAssetList[0];

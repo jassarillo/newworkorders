@@ -476,7 +476,7 @@ class _WODetailState extends State<WODetail> {
                           ),
                         ],
                       ),
-                      subtitle: Text('Texxt'),
+                      subtitle: Text(''),
                       trailing: Icon(
                         Icons.arrow_forward,
                         color: Color.fromARGB(255, 124, 122, 122),
@@ -484,44 +484,8 @@ class _WODetailState extends State<WODetail> {
                     ),
                   ),
                 ),
-                InkWell(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => Assigness(woId: woId),
-                      ),
-                    );
-                  },
-                  child: const Card(
-                    child: ListTile(
-                      leading: Icon(
-                        Icons.person,
-                        color: Color.fromARGB(255, 124, 122, 122),
-                      ),
-                      title: Wrap(
-                        alignment: WrapAlignment.spaceBetween,
-                        runSpacing: 2,
-                        children: <Widget>[
-                          Text(
-                            'Assigness',
-                            style: TextStyle(
-                              color: Colors.black,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 20,
-                            ),
-                          ),
-                        ],
-                      ),
-                      subtitle: Text('woDescription ccdcd'),
-                      trailing: Icon(
-                        Icons.arrow_forward,
-                        color: Color.fromARGB(255, 124, 122, 122),
-                      ),
-                    ),
-                  ),
-                ),
-                InkWell(
+
+                 InkWell(
                   onTap: () {
                     Navigator.push(
                       context,
@@ -561,6 +525,45 @@ class _WODetailState extends State<WODetail> {
                     ),
                   ),
                 ),
+
+                InkWell(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => Assigness(woId: woId),
+                      ),
+                    );
+                  },
+                  child: const Card(
+                    child: ListTile(
+                      leading: Icon(
+                        Icons.person,
+                        color: Color.fromARGB(255, 124, 122, 122),
+                      ),
+                      title: Wrap(
+                        alignment: WrapAlignment.spaceBetween,
+                        runSpacing: 2,
+                        children: <Widget>[
+                          Text(
+                            'Assigness',
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 20,
+                            ),
+                          ),
+                        ],
+                      ),
+                      subtitle: Text('woDescription ccdcd'),
+                      trailing: Icon(
+                        Icons.arrow_forward,
+                        color: Color.fromARGB(255, 124, 122, 122),
+                      ),
+                    ),
+                  ),
+                )
+               
               ],
             );
           } else {
