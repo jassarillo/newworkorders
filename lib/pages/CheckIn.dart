@@ -498,7 +498,7 @@ class _CheckInState extends State<CheckIn> {
                         ),
 
                         ElevatedButton(
-                          onPressed: () {
+                          onPressed: () async {
                             if (showCheckbox && isChecked) {
                               // Si el checkbox está activado, verificar el campo de comentarios
                               if (commentController.text.isEmpty) {
@@ -528,9 +528,31 @@ class _CheckInState extends State<CheckIn> {
                             requestLocationPermission();
                             submitForm(widget.idUser, widget.site_id);
                           },
+                          style: ElevatedButton.styleFrom(
+                            padding: const EdgeInsets.all(20),
+                            minimumSize: Size(5, 50),
+                            primary: const Color.fromARGB(255, 39, 17, 243),
+                          ),
                           child: Text('Punch In'),
                         ),
 
+                        MaterialButton(
+                          padding: const EdgeInsets.all(20),
+                          minWidth: 2,
+                          height: 20,
+                          onPressed: () async {},
+                          color: Color.fromARGB(255, 90, 90, 91),
+                          child: const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              SizedBox(width: 10),
+                              Text(
+                                'Puch +++ In',
+                                style: TextStyle(color: Colors.white),
+                              ),
+                            ],
+                          ),
+                        ),
                         /*Text(latitude),
                         Text(longitude),*/
                         // Agregar otros widgets que desees dentro del SingleChildScrollView

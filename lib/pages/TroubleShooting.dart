@@ -59,7 +59,8 @@ class _TroubleShootingState extends State<TroubleShooting> {
   List<WorkOrderUnit> workOrderUnitList = [];
   List<WorkOrderPriority> workOrderPriorityList = [];
   List<WorkOrderAsset> workOrderAssetList = [];
-  List<Map<String, String>> jsonResponseCheck = [];
+  List<Map<String, dynamic>> jsonResponseCheck = [];
+  Map<String, bool> selectedQuestions = {};
 
   WorkOrderUnit? selectedStatus;
   WorkOrderAsset? selectedAsset;
@@ -74,7 +75,7 @@ class _TroubleShootingState extends State<TroubleShooting> {
   Future<void> fetchWorkOrderUnitList() async {
     final response = await http.get(
       Uri.parse(
-          'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/troubleshooting/Cat_list_get/408'), //Primer select
+          'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/troubleshooting/Cat_list_get/' + widget.insertId), //Primer select
     );
 
     print("==>>>>" + response.body);
@@ -119,73 +120,105 @@ class _TroubleShootingState extends State<TroubleShooting> {
       throw Exception('Failed to load work order assets');
     }
   }
+Future<void> fetchtroubleShooting(String insertId, String titleId) async {
+  final postUrl = Uri.parse(
+      'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/troubleshooting/List_questions_post');
 
-  Future<void> fetchtroubleShooting(String insertId, String titleId) async {
-    final postUrl = Uri.parse(
-        'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/troubleshooting/List_questions_post');//preguntas de los checks
+  final response = await http.post(
+    postUrl,
+    body: {
+      'tbs_title': titleId,
+      'wo_id': insertId,
+    },
+  );
 
-    final response = await http.post(
-      postUrl,
-      body: {
-        'tbs_title': titleId,
-        'wo_id': insertId,
+  print(response.body);
+  if (response.statusCode == 200) {
+    final dynamic decodedResponse = json.decode(response.body);
+
+    if (decodedResponse is Map<String, dynamic> &&
+        decodedResponse.containsKey('getQuestions')) {
+      setState(() {
+        jsonResponseCheck = List<Map<String, dynamic>>.from(
+          decodedResponse['getQuestions'].map<Map<String, dynamic>>(
+            (question) => Map<String, dynamic>.from(question),
+          ),
+        );
+      });
+    }
+  } else {
+    // Handle the request error if necessary.
+  }
+}
+
+
+List<Widget> buildCheckboxList() {
+  return jsonResponseCheck.map<Widget>((question) {
+    final tbsId = question['tbs_id'] as String;
+    final description = question['question_description'] as String;
+
+    // Ajuste aquí: Si el campo 'check' es 1, isChecked es true, de lo contrario, usa el valor almacenado
+    bool isChecked = question['check'] == 1;
+
+    return CheckboxListTile(
+      controlAffinity: ListTileControlAffinity.leading,
+      title: Align(
+        alignment: Alignment(-1.2, 0),
+        child: Text(description),
+      ),
+      value: isChecked,
+      onChanged: (bool? value) {
+        setState(() {
+          isChecked = value ?? false;
+          selectedQuestions[tbsId] = isChecked;
+
+          // También actualizamos el estado general de jsonResponseCheck
+          jsonResponseCheck =
+              List<Map<String, dynamic>>.from(jsonResponseCheck.map((q) {
+            if (q['tbs_id'] == tbsId) {
+              q['check'] = isChecked ? 1 : 0;
+            }
+            return q;
+          }));
+        });
       },
     );
+  }).toList();
+}
 
-    print(response.body);
-    if (response.statusCode == 200) {
-      final dynamic decodedResponse = json.decode(response.body);
 
-      if (decodedResponse is Map<String, dynamic> &&
-          decodedResponse.containsKey('getQuestions')) {
-        setState(() {
-          jsonResponseCheck = List<Map<String, String>>.from(
-            decodedResponse['getQuestions'].map<Map<String, String>>(
-              (question) => Map<String, String>.from(question),
-            ),
-          );
-        });
-      }
-    } else {
-      // Handle the request error if necessary.
-    }
-  }
+  void submitForm(String titleId) async {
+    final selectedQuestionIds = selectedQuestions.entries
+        .where((entry) => entry.value)
+        .map<String>((entry) => entry.key)
+        .toList();
 
-  List<Widget> buildCheckboxList() {
-    return jsonResponseCheck.map<Widget>((question) {
-      final tbsId = question['tbs_id'] as String;
-      final description = question['question_description'] as String;
-      bool isChecked = false; // Inicializar según la lógica de tu aplicación
+    print('Selected Question IDs: $selectedQuestionIds');
 
-      return CheckboxListTile(
-        controlAffinity: ListTileControlAffinity.leading,
-        title: Align(
-          alignment: Alignment(-1.2, 0),
-          child: Text(description),
-        ),
-        value: isChecked,
-        onChanged: (bool? value) {
-          setState(() {
-            isChecked = value ?? false;
-            // Agregar lógica según tu aplicación
-          });
+    try {
+      final response = await http.post(
+        Uri.parse(
+            'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/troubleshooting/In_post'),
+        body: {
+          'selectedQuestionIds':
+              selectedQuestionIds.join(','), // Convertir a una cadena CSV
+          'wo_id': widget.insertId,
+          'user_id': widget.idUser,
+          'tbs_title': titleId,
         },
       );
-    }).toList();
-  }
-
-  void submitForm() async {
-    final selectedQuestions = jsonResponseCheck
-        .where((question) =>  true)
-        .toList();
-
-    final selectedQuestionIds = selectedQuestions
-        .map<String>((question) => question['tbs_id']!)
-        .toList();
-
-    print('gggg  - Selected Question IDs: $selectedQuestionIds');
-
-    // Agregar lógica para la solicitud POST según tu aplicación
+      print(titleId);
+      print(response.body);
+      if (response.statusCode == 200) {
+        // print('POST request successful');
+        print('Response: ${response.body}');
+      } else {
+        print(
+            'Failed to make POST request. Status code: ${response.statusCode}');
+      }
+    } catch (error) {
+      print('Error making POST request: $error');
+    }
   }
 
   @override
@@ -308,7 +341,8 @@ class _TroubleShootingState extends State<TroubleShooting> {
             ),
             ElevatedButton(
               onPressed: () {
-                submitForm();
+                submitForm(selectedStatus!
+                    .title_id); // Supongo que selectedStatus no es nulo aquí
               },
               child: Text('Save List'),
             ),
