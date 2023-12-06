@@ -1,12 +1,18 @@
 import 'dart:convert';
+import 'RedirectTo.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 class TroubleShooting extends StatefulWidget {
   final String insertId;
   final String idUser;
+  final String user_type_id;
+
   const TroubleShooting(
-      {required this.insertId, required this.idUser, Key? key})
+      {required this.insertId,
+      required this.idUser,
+      required this.user_type_id,
+      Key? key})
       : super(key: key);
 
   @override
@@ -17,7 +23,10 @@ class WorkOrderUnit {
   final String title_id;
   final String title_description;
 
-  WorkOrderUnit({required this.title_id, required this.title_description});
+  WorkOrderUnit({
+    required this.title_id,
+    required this.title_description,
+  });
 
   factory WorkOrderUnit.fromJson(Map<String, dynamic> json) {
     return WorkOrderUnit(
@@ -62,6 +71,14 @@ class _TroubleShootingState extends State<TroubleShooting> {
   List<Map<String, dynamic>> jsonResponseCheck = [];
   Map<String, bool> selectedQuestions = {};
 
+  bool enableCheckboxes =
+      true; // Variable para controlar la habilitación/deshabilitación de los checkboxes
+  bool showSaveListButton =
+      true; // Variable para controlar la visibilidad del botón
+  bool originalResponseHadZero =
+      false; // Indicador para rastrear si la respuesta original tenía algún check establecido en 0
+
+  bool hideSaveButton = false;
   WorkOrderUnit? selectedStatus;
   WorkOrderAsset? selectedAsset;
   WorkOrderPriority? selectedPriority;
@@ -75,7 +92,8 @@ class _TroubleShootingState extends State<TroubleShooting> {
   Future<void> fetchWorkOrderUnitList() async {
     final response = await http.get(
       Uri.parse(
-          'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/troubleshooting/Cat_list_get/' + widget.insertId), //Primer select
+          'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/troubleshooting/Cat_list_get/' +
+              widget.insertId),
     );
 
     print("==>>>>" + response.body);
@@ -120,72 +138,140 @@ class _TroubleShootingState extends State<TroubleShooting> {
       throw Exception('Failed to load work order assets');
     }
   }
-Future<void> fetchtroubleShooting(String insertId, String titleId) async {
-  final postUrl = Uri.parse(
-      'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/troubleshooting/List_questions_post');
 
-  final response = await http.post(
-    postUrl,
-    body: {
-      'tbs_title': titleId,
-      'wo_id': insertId,
-    },
-  );
+  Future<void> fetchtroubleShooting(String insertId, String titleId) async {
+    final postUrl = Uri.parse(
+      'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/troubleshooting/List_questions_post',
+    );
 
-  print(response.body);
-  if (response.statusCode == 200) {
-    final dynamic decodedResponse = json.decode(response.body);
-
-    if (decodedResponse is Map<String, dynamic> &&
-        decodedResponse.containsKey('getQuestions')) {
-      setState(() {
-        jsonResponseCheck = List<Map<String, dynamic>>.from(
-          decodedResponse['getQuestions'].map<Map<String, dynamic>>(
-            (question) => Map<String, dynamic>.from(question),
-          ),
-        );
-      });
-    }
-  } else {
-    // Handle the request error if necessary.
-  }
-}
-
-
-List<Widget> buildCheckboxList() {
-  return jsonResponseCheck.map<Widget>((question) {
-    final tbsId = question['tbs_id'] as String;
-    final description = question['question_description'] as String;
-
-    // Ajuste aquí: Si el campo 'check' es 1, isChecked es true, de lo contrario, usa el valor almacenado
-    bool isChecked = question['check'] == 1;
-
-    return CheckboxListTile(
-      controlAffinity: ListTileControlAffinity.leading,
-      title: Align(
-        alignment: Alignment(-1.2, 0),
-        child: Text(description),
-      ),
-      value: isChecked,
-      onChanged: (bool? value) {
-        setState(() {
-          isChecked = value ?? false;
-          selectedQuestions[tbsId] = isChecked;
-
-          // También actualizamos el estado general de jsonResponseCheck
-          jsonResponseCheck =
-              List<Map<String, dynamic>>.from(jsonResponseCheck.map((q) {
-            if (q['tbs_id'] == tbsId) {
-              q['check'] = isChecked ? 1 : 0;
-            }
-            return q;
-          }));
-        });
+    final response = await http.post(
+      postUrl,
+      body: {
+        'tbs_title': titleId,
+        'wo_id': insertId,
       },
     );
-  }).toList();
-}
 
+    print(response.body);
+    if (response.statusCode == 200) {
+      final dynamic decodedResponse = json.decode(response.body);
+
+      if (decodedResponse is Map<String, dynamic> &&
+          decodedResponse.containsKey('getQuestions')) {
+        setState(() {
+          jsonResponseCheck = List<Map<String, dynamic>>.from(
+            decodedResponse['getQuestions'].map<Map<String, dynamic>>(
+              (question) => Map<String, dynamic>.from(question),
+            ),
+          );
+
+          // Actualizar enableCheckboxes en función de la nueva respuesta
+          enableCheckboxes = !allChecksTrue();
+
+          // Actualizar showSaveListButton en función de la nueva respuesta
+          showSaveListButton = !allChecksOne() || originalResponseHadZero;
+        });
+      }
+    } else {
+      // Manejar el error de la solicitud si es necesario.
+    }
+  }
+
+// Función para verificar si todos los checks son verdaderos
+  bool allChecksTrue() {
+    return jsonResponseCheck.every((question) => question['check'] == 1);
+  }
+
+  // Función para verificar si todos los checks son uno
+  bool allChecksOne() {
+    return jsonResponseCheck.every((question) => question['check'] == 1);
+  }
+
+  int trueChecksCount = 0;
+
+  int countTrueChecks() {
+    trueChecksCount =
+        jsonResponseCheck.where((question) => question['check'] == 1).length;
+
+    return trueChecksCount;
+  }
+
+  List<Widget> buildCheckboxList() {
+    return jsonResponseCheck.map<Widget>((question) {
+      final tbsId = question['tbs_id'] as String;
+      final description = question['question_description'] as String;
+
+      // Ajuste aquí: Si el campo 'check' es 1, isChecked es true, de lo contrario, usa el valor almacenado
+      bool isChecked = question['check'] == 1;
+
+      return CheckboxListTile(
+        controlAffinity: ListTileControlAffinity.leading,
+        title: Align(
+          alignment: Alignment(-1.2, 0),
+          child: Text(description),
+        ),
+        value: isChecked,
+        onChanged: enableCheckboxes
+            ? (bool? value) {
+                setState(() {
+                  isChecked = value ?? false;
+                  selectedQuestions[tbsId] = isChecked;
+                  //print("  cuantos -- >  " + trueChecksCount.toString());
+                  // // También actualizamos el estado general de jsonResponseCheck
+                  jsonResponseCheck = List<Map<String, dynamic>>.from(
+                      jsonResponseCheck.map((q) {
+                    if (q['tbs_id'] == tbsId) {
+                      q['check'] = isChecked ? 1 : 0;
+                    }
+                    return q;
+                  }));
+                  //countTrueChecks();
+                });
+              }
+            : null, // If enableCheckboxes is false, disable the checkbox
+      );
+    }).toList();
+  }
+
+  void showAlert(String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Mensaje'),
+          content: Text(message),
+          actions: <Widget>[
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Cerrar el cuadro de diálogo
+                if (message == 'Complete!') {
+                  // Navegar a la pantalla de WODetail.dart
+                  /*Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => RedirectTo(
+                    user_type_id: '3',
+                    idUser: widget.idUser,
+                  ),
+                ),*/
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => RedirectTo(
+                              idUser: widget.idUser,
+                              user_type_id: widget.user_type_id,
+                              woId: widget.insertId,
+                            )),
+                  );
+                }
+              },
+              child: Text('Aceptar'),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   void submitForm(String titleId) async {
     final selectedQuestionIds = selectedQuestions.entries
@@ -198,7 +284,8 @@ List<Widget> buildCheckboxList() {
     try {
       final response = await http.post(
         Uri.parse(
-            'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/troubleshooting/In_post'),
+          'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/troubleshooting/In_post',
+        ),
         body: {
           'selectedQuestionIds':
               selectedQuestionIds.join(','), // Convertir a una cadena CSV
@@ -207,11 +294,18 @@ List<Widget> buildCheckboxList() {
           'tbs_title': titleId,
         },
       );
+
       print(titleId);
       print(response.body);
+
       if (response.statusCode == 200) {
-        // print('POST request successful');
-        print('Response: ${response.body}');
+        final dynamic decodedResponse = json.decode(response.body);
+
+        if (decodedResponse is Map<String, dynamic> &&
+            decodedResponse.containsKey('msn')) {
+          final String message = decodedResponse['msn'];
+          showAlert(message);
+        }
       } else {
         print(
             'Failed to make POST request. Status code: ${response.statusCode}');
@@ -339,12 +433,20 @@ List<Widget> buildCheckboxList() {
                 ),
               ),
             ),
-            ElevatedButton(
-              onPressed: () {
-                submitForm(selectedStatus!
-                    .title_id); // Supongo que selectedStatus no es nulo aquí
-              },
-              child: Text('Save List'),
+            Visibility(
+              visible: showSaveListButton,
+              child: ElevatedButton(
+                onPressed: () {
+                  submitForm(selectedStatus!.title_id);
+                },
+                child: Text('Save List'),
+                style: ElevatedButton.styleFrom(
+                  primary:
+                      const Color(0xFF2711F3), // Usando formato hexadecimal
+                  padding: const EdgeInsets.all(20),
+                  minimumSize: Size(MediaQuery.of(context).size.width, 50),
+                ),
+              ),
             ),
           ],
         ),

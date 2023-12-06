@@ -492,7 +492,8 @@ class _WODetailState extends State<WODetail> {
                       MaterialPageRoute(
                         builder: (context) => TroubleShooting(
                           insertId: woId.toString(),
-                              idUser: widget.idUser
+                              idUser: widget.idUser,
+                              user_type_id: widget.user_type_id
                           ),
                       ),
                     );

@@ -123,7 +123,7 @@ class _WorkOrdersState extends State<WorkOrders> {
                   context,
                   MaterialPageRoute(
                       builder: (context) =>
-                           AddNewOrder(idUser: widget.idUser)),
+                           AddNewOrder(idUser: widget.idUser, user_type_id: widget.user_type_id)),
                 );
               },
               color: const Color.fromARGB(255, 39, 17, 243),

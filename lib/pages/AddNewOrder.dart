@@ -8,7 +8,13 @@ import 'package:image_picker/image_picker.dart';
 
 class AddNewOrder extends StatefulWidget {
   final String idUser;
-  const AddNewOrder({Key? key, required this.idUser}) : super(key: key);
+  final String user_type_id;
+
+  const AddNewOrder({
+    Key? key,
+    required this.idUser,
+    required this.user_type_id
+  }) : super(key: key);
 
   @override
   State<AddNewOrder> createState() => _AddNewOrderState();
@@ -175,7 +181,8 @@ class _AddNewOrderState extends State<AddNewOrder> {
                         MaterialPageRoute(
                           builder: (context) => TroubleShooting(
                               insertId: insertId.toString(),
-                              idUser: widget.idUser),
+                              idUser: widget.idUser,
+                              user_type_id: widget.user_type_id),
                         ),
                       );
                     },
@@ -191,8 +198,7 @@ class _AddNewOrderState extends State<AddNewOrder> {
             builder: (BuildContext context) {
               return AlertDialog(
                 title: const Text("Error"),
-                content: const Text(
-                    "Error to upload images!"),
+                content: const Text("Error to upload images!"),
                 actions: <Widget>[
                   TextButton(
                     child: const Text("Accept"),
