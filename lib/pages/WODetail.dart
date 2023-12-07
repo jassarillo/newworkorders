@@ -3,11 +3,9 @@ import 'CheckIn.dart';
 import 'Comments.dart';
 import 'WorkOrders.dart';
 import 'TroubleShooting.dart';
-import 'TroubleShooting.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'subPantallasCheck/Assigness.dart';
-import 'subPantallasCheck/Quotation.dart';
 
 class WODetail extends StatefulWidget {
   final String woId;
@@ -412,6 +410,80 @@ class _WODetailState extends State<WODetail> {
                       ),
                     );
                   },
+                  child: const Card(
+                    child: ListTile(
+                      leading: Icon(
+                        Icons.comment,
+                        color: Color.fromARGB(255, 124, 122, 122),
+                      ),
+                      title: Wrap(
+                        alignment: WrapAlignment.spaceBetween,
+                        runSpacing: 2,
+                        children: <Widget>[
+                          Text(
+                            'Photos',
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 20,
+                            ),
+                          ),
+                        ],
+                      ),
+                      subtitle: Text(''),
+                      trailing: Icon(
+                        Icons.arrow_forward,
+                        color: Color.fromARGB(255, 124, 122, 122),
+                      ),
+                    ),
+                  ),
+                ),
+                InkWell(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => Comments(woId: woId),
+                      ),
+                    );
+                  },
+                  child: const Card(
+                    child: ListTile(
+                      leading: Icon(
+                        Icons.comment,
+                        color: Color.fromARGB(255, 124, 122, 122),
+                      ),
+                      title: Wrap(
+                        alignment: WrapAlignment.spaceBetween,
+                        runSpacing: 2,
+                        children: <Widget>[
+                          Text(
+                            'Comments',
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 20,
+                            ),
+                          ),
+                        ],
+                      ),
+                      subtitle: Text(''),
+                      trailing: Icon(
+                        Icons.arrow_forward,
+                        color: Color.fromARGB(255, 124, 122, 122),
+                      ),
+                    ),
+                  ),
+                ),
+                InkWell(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => Comments(woId: woId),
+                      ),
+                    );
+                  },
                   child: Card(
                     child: ListTile(
                       leading: Container(
@@ -467,7 +539,7 @@ class _WODetailState extends State<WODetail> {
                         runSpacing: 2,
                         children: <Widget>[
                           Text(
-                            'Comments',
+                            'Operative Cost',
                             style: TextStyle(
                               color: Colors.black,
                               fontWeight: FontWeight.bold,
@@ -484,49 +556,7 @@ class _WODetailState extends State<WODetail> {
                     ),
                   ),
                 ),
-
-                 InkWell(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => TroubleShooting(
-                          insertId: woId.toString(),
-                              idUser: widget.idUser,
-                              user_type_id: widget.user_type_id
-                          ),
-                      ),
-                    );
-                  },
-                  child: const Card(
-                    child: ListTile(
-                      leading: Icon(
-                        Icons.person,
-                        color: Color.fromARGB(255, 124, 122, 122),
-                      ),
-                      title: Wrap(
-                        alignment: WrapAlignment.spaceBetween,
-                        runSpacing: 2,
-                        children: <Widget>[
-                          Text(
-                            'TroubleShoting',
-                            style: TextStyle(
-                              color: Colors.black,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 20,
-                            ),
-                          ),
-                        ],
-                      ),
-                      subtitle: Text('woDescription ccdcd'),
-                      trailing: Icon(
-                        Icons.arrow_forward,
-                        color: Color.fromARGB(255, 124, 122, 122),
-                      ),
-                    ),
-                  ),
-                ),
-
+               
                 InkWell(
                   onTap: () {
                     Navigator.push(
@@ -563,8 +593,47 @@ class _WODetailState extends State<WODetail> {
                       ),
                     ),
                   ),
+                ),
+                 InkWell(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => TroubleShooting(
+                            insertId: woId.toString(),
+                            idUser: widget.idUser,
+                            user_type_id: widget.user_type_id),
+                      ),
+                    );
+                  },
+                  child: const Card(
+                    child: ListTile(
+                      leading: Icon(
+                        Icons.person,
+                        color: Color.fromARGB(255, 124, 122, 122),
+                      ),
+                      title: Wrap(
+                        alignment: WrapAlignment.spaceBetween,
+                        runSpacing: 2,
+                        children: <Widget>[
+                          Text(
+                            'TroubleShoting',
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 20,
+                            ),
+                          ),
+                        ],
+                      ),
+                      subtitle: Text('woDescription ccdcd'),
+                      trailing: Icon(
+                        Icons.arrow_forward,
+                        color: Color.fromARGB(255, 124, 122, 122),
+                      ),
+                    ),
+                  ),
                 )
-               
               ],
             );
           } else {

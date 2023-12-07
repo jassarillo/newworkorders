@@ -1,8 +1,6 @@
-import 'dart:io';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:image_picker/image_picker.dart';
 
 class Assigness extends StatefulWidget {
   final String woId;
@@ -20,28 +18,19 @@ class _AssignessState extends State<Assigness> {
   List<dynamic> jsonResponse = [];
   List<dynamic> filteredWorkOrders = [];
   TextEditingController searchController = TextEditingController();
-  //List<dynamic> comments = [];
-  Future<void> _refresh() async {
-    await fetchWorkOrderDetailsMessages(widget.woId);
-  }
+  String searchQuery = ''; // New variable for search query
 
-  Color getColorForPriority(String priority) {
-    if (priority == 'high') {
-      return Colors.red;
-    } else if (priority == 'medium') {
-      return Colors.yellow;
-    } else {
-      return Colors.green;
-    }
+  Future<void> _refresh() async {
+    await fetchAssignessList(widget.woId);
   }
 
   @override
   void initState() {
     super.initState();
-    fetchWorkOrderDetailsMessages(widget.woId);
+    fetchAssignessList(widget.woId);
   }
 
-  Future<void> fetchWorkOrderDetailsMessages(String woId) async {
+  Future<void> fetchAssignessList(String woId) async {
     final url = Uri.parse(
         'https://srv406820.hstgr.cloud/mainthelpdev/index.php/api/assigness/As_list_get/391/4');
     final response = await http.get(url);
@@ -49,7 +38,8 @@ class _AssignessState extends State<Assigness> {
       print(response.body);
       jsonResponse = json.decode(response.body);
       if (jsonResponse.length > 1) {
-        filterWorkOrders(searchController.text);
+        filterWorkOrders(
+            searchQuery); // Use searchQuery instead of searchController.text
       }
     }
   }
@@ -60,7 +50,6 @@ class _AssignessState extends State<Assigness> {
     }
     List<dynamic> localComments;
 
-    //final comments = jsonResponse[1];
     if (filteredWorkOrders.isNotEmpty) {
       localComments = List.from(filteredWorkOrders);
     } else {
@@ -69,7 +58,7 @@ class _AssignessState extends State<Assigness> {
     return localComments.map<Widget>((comment) {
       final position = comment['position'] as String;
       final name = comment['name'] as String;
-      final woId = comment['name'] as String;
+      final employee_id = comment['employee_id'] as String;
 
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 1.0, horizontal: 16.0),
@@ -79,7 +68,7 @@ class _AssignessState extends State<Assigness> {
           ),
           child: ListTile(
             leading: Radio(
-              value: woId,
+              value: employee_id,
               groupValue: selectedWoId,
               onChanged: (dynamic value) {
                 setState(() {
@@ -121,21 +110,53 @@ class _AssignessState extends State<Assigness> {
 
   void filterWorkOrders(String query) {
     setState(() {
+      searchQuery = query; // Update searchQuery
       filteredWorkOrders = jsonResponse.length >= 2
           ? jsonResponse[1]
               .where((workOrder) =>
-                  workOrder['description_activity']
-                      .toLowerCase()
-                      .contains(query.toLowerCase()) ||
-                  workOrder['due_time']
-                      .toLowerCase()
-                      .contains(query.toLowerCase()) ||
-                  workOrder['wo_id']
-                      .toLowerCase()
-                      .contains(query.toLowerCase()))
+                  (workOrder['position']?.toLowerCase() ?? '')
+                      .contains(searchQuery.toLowerCase()) ||
+                  (workOrder['name']?.toLowerCase() ?? '')
+                      .contains(searchQuery.toLowerCase()))
               .toList()
           : [];
     });
+  }
+
+  Future<void> saveData() async {
+    if (selectedWoId == null) {
+      // Handle the case when no card is selected
+      return;
+    }
+
+    final url = Uri.parse(
+        'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/assigness/As_post');
+
+    // Obtener el ID del card seleccionado
+    //final selectedCardId = selectedWoId;
+
+    // Campos con valores fijos
+    // final employeeId = 303;
+    // final staff = '303'; // Cambiar a un valor adecuado
+     //final userId = 1;
+
+    // Enviar solicitud POST
+    final response = await http.post(url, body: {
+      //'employee_id': selectedCardId,
+      'staff': '303',
+      'user_id': '1',
+      'wo_id': '436'
+    });
+    print(response.body);
+    // Manejar la respuesta según tus necesidades
+    if (response.statusCode == 200) {
+      // La solicitud fue exitosa
+      //print('Datos guardados correctamente');
+    } else {
+      // La solicitud falló
+      print(
+          'Error al guardar los datos. Código de respuesta: ${response.statusCode}');
+    }
   }
 
   @override
@@ -185,7 +206,7 @@ class _AssignessState extends State<Assigness> {
                         ),
                       ),
                       Text(
-                        this.woId,
+                        widget.woId,
                         style: TextStyle(
                           color: Color.fromARGB(255, 5, 5, 5),
                           fontWeight: FontWeight.w500,
@@ -241,30 +262,24 @@ class _AssignessState extends State<Assigness> {
                 ),
               ),
             ),
-              MaterialButton(
-                padding: const EdgeInsets.all(20),
-                minWidth: 5,
-                height: 50,
-                onPressed: () async {
-                  // setState(() {
-                  //   problem = problemController.text;
-                  // });
-                  // /**  ---------  **/
-                  // _uploadImageAndSaveOrder();
-                  // /**  ---------  **/
-                },
-                color: const Color.fromARGB(255, 39, 17, 243),
-                child: const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    SizedBox(width: 10),
-                    Text(
-                      'Save',
-                      style: TextStyle(color: Colors.white),
-                    ),
-                  ],
-                ),
+            MaterialButton(
+              padding: const EdgeInsets.all(20),
+              minWidth: 5,
+              height: 50,
+              onPressed:
+                  saveData, // Llamar al método saveData al hacer clic en el botón "Save"
+              color: const Color.fromARGB(255, 39, 17, 243),
+              child: const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SizedBox(width: 10),
+                  Text(
+                    'Save',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ],
               ),
+            ),
           ],
         ),
       ),

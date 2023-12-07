@@ -245,15 +245,6 @@ class _TroubleShootingState extends State<TroubleShooting> {
               onPressed: () {
                 Navigator.of(context).pop(); // Cerrar el cuadro de diálogo
                 if (message == 'Complete!') {
-                  // Navegar a la pantalla de WODetail.dart
-                  /*Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => RedirectTo(
-                    user_type_id: '3',
-                    idUser: widget.idUser,
-                  ),
-                ),*/
                   Navigator.push(
                     context,
                     MaterialPageRoute(

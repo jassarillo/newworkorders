@@ -508,7 +508,8 @@ class _CheckInState extends State<CheckIn> {
                                   builder: (BuildContext context) {
                                     return AlertDialog(
                                       title: Text("Error"),
-                                      content: Text("You need add a comment!"),
+                                      content:
+                                          Text("You need to add a comment!"),
                                       actions: <Widget>[
                                         TextButton(
                                           child: Text("Accept"),
@@ -523,36 +524,22 @@ class _CheckInState extends State<CheckIn> {
                                 return; // Salir de la función si hay un error
                               }
                             }
-
-                            // Continuar con la lógica de envío del formulario
                             requestLocationPermission();
                             submitForm(widget.idUser, widget.site_id);
                           },
                           style: ElevatedButton.styleFrom(
                             padding: const EdgeInsets.all(20),
-                            minimumSize: Size(5, 50),
+                            minimumSize: Size(double.infinity,
+                                50), // Ancho de pantalla completa
                             primary: const Color.fromARGB(255, 39, 17, 243),
                           ),
-                          child: Text('Punch In'),
-                        ),
-
-                        MaterialButton(
-                          padding: const EdgeInsets.all(20),
-                          minWidth: 2,
-                          height: 20,
-                          onPressed: () async {},
-                          color: Color.fromARGB(255, 90, 90, 91),
-                          child: const Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              SizedBox(width: 10),
-                              Text(
-                                'Puch +++ In',
-                                style: TextStyle(color: Colors.white),
-                              ),
-                            ],
+                          child: Text(
+                            'Punch In',
+                            style: TextStyle(
+                                fontSize: 18), // Tamaño de fuente personalizado
                           ),
                         ),
+
                         /*Text(latitude),
                         Text(longitude),*/
                         // Agregar otros widgets que desees dentro del SingleChildScrollView

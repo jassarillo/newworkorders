@@ -101,14 +101,13 @@ class _WorkOrdersState extends State<WorkOrders> {
         children: <Widget>[
           Container(
             alignment: Alignment.topLeft,
-            padding: const EdgeInsets.all(10),
-            margin: const EdgeInsets.all(10),
+            padding: const EdgeInsets.all(5),
+            margin: const EdgeInsets.all(5),
             child: const Text(
               'Work Orders',
               style: TextStyle(
                 color: Color.fromARGB(255, 5, 5, 5),
-                fontWeight: FontWeight.w500,
-                fontSize: 30,
+                fontSize: 18,
               ),
             ),
           ),
@@ -116,8 +115,6 @@ class _WorkOrdersState extends State<WorkOrders> {
             visible: widget.user_type_id == '1' || widget.user_type_id == '5',
             child: MaterialButton(
               padding: const EdgeInsets.all(20),
-              minWidth: 5,
-              height: 50,
               onPressed: () {
                 Navigator.push(
                   context,
