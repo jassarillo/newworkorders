@@ -6,6 +6,8 @@ import 'TroubleShooting.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'subPantallasCheck/Assigness.dart';
+import 'subPantallasCheck/Quotation.dart';
+import 'package:Help_Maintenance/pages/subPantallasCheck/OperativeCost.dart';
 
 class WODetail extends StatefulWidget {
   final String woId;
@@ -121,6 +123,7 @@ class _WODetailState extends State<WODetail> {
             final unit = workOrderDetails?['unit'];
             final assetName = workOrderDetails?['asset_name'];
             final woDescription = workOrderDetails?['wo_description'];
+           final brand_id = workOrderDetails?['brand_id'];
 
             return ListView(
               padding: const EdgeInsets.all(5),
@@ -135,7 +138,7 @@ class _WODetailState extends State<WODetail> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: <Widget>[
                             const Text(
-                              'Work Order Number',
+                              'Work Order Number 55',
                               style: TextStyle(
                                 color: Color.fromARGB(255, 5, 5, 5),
                                 fontWeight: FontWeight.w500,
@@ -480,7 +483,10 @@ class _WODetailState extends State<WODetail> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => Comments(woId: woId),
+                        builder: (context) => Quotation(
+                            woId: widget.woId,
+                            idUser: widget.idUser,
+                            user_type_id: widget.user_type_id),
                       ),
                     );
                   },
@@ -511,7 +517,7 @@ class _WODetailState extends State<WODetail> {
                           ),
                         ],
                       ),
-                      subtitle: Text('Reported quotations'),
+                      subtitle: Text('Reported quotations55'),
                       trailing: Icon(
                         Icons.arrow_forward,
                         color: Color.fromARGB(255, 124, 122, 122),
@@ -524,7 +530,10 @@ class _WODetailState extends State<WODetail> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => Comments(woId: woId),
+                        builder: (context) => OperativeCost(
+                            woId: widget.woId,
+                            idUser: widget.idUser,
+                            user_type_id: widget.user_type_id),
                       ),
                     );
                   },
@@ -556,13 +565,15 @@ class _WODetailState extends State<WODetail> {
                     ),
                   ),
                 ),
-               
                 InkWell(
                   onTap: () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => Assigness(woId: woId),
+                        builder: (context) => Assigness(
+                            woId: woId,
+                            idUser: widget.idUser,
+                            user_type_id: widget.user_type_id),
                       ),
                     );
                   },
@@ -594,15 +605,17 @@ class _WODetailState extends State<WODetail> {
                     ),
                   ),
                 ),
-                 InkWell(
+                InkWell(
                   onTap: () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (context) => TroubleShooting(
-                            insertId: woId.toString(),
-                            idUser: widget.idUser,
-                            user_type_id: widget.user_type_id),
+                          insertId: woId.toString(),
+                          idUser: widget.idUser,
+                          user_type_id: widget.user_type_id,
+                          brand_id: brand_id.toString(),
+                        ),
                       ),
                     );
                   },

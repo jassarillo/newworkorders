@@ -1,17 +1,25 @@
 import 'dart:convert';
+import '../RedirectTo.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 class Assigness extends StatefulWidget {
   final String woId;
-  const Assigness({required this.woId, Key? key}) : super(key: key);
+  final String idUser;
+  final String user_type_id;
+  const Assigness({
+    required this.woId, 
+    required this.idUser,
+    required this.user_type_id,
+    Key? key})
+      : super(key: key);
 
   @override
   State<Assigness> createState() => _AssignessState();
 }
 
 class _AssignessState extends State<Assigness> {
-  dynamic selectedWoId;
+  dynamic selectedEmployedId;
   String woId = '';
   String priority = '';
   String description = '';
@@ -69,10 +77,10 @@ class _AssignessState extends State<Assigness> {
           child: ListTile(
             leading: Radio(
               value: employee_id,
-              groupValue: selectedWoId,
+              groupValue: selectedEmployedId,
               onChanged: (dynamic value) {
                 setState(() {
-                  selectedWoId = value;
+                  selectedEmployedId = value;
                 });
               },
             ),
@@ -91,17 +99,7 @@ class _AssignessState extends State<Assigness> {
               ],
             ),
             subtitle: Text(position),
-            trailing: CircleAvatar(
-              backgroundColor: Colors.white,
-              child: ClipOval(
-                child: Image.network(
-                  'https://img.freepik.com/vector-premium/perfil-avatar-mujer-icono-redondo_24640-14047.jpg',
-                  width: 30,
-                  height: 30,
-                  fit: BoxFit.cover,
-                ),
-              ),
-            ),
+           
           ),
         ),
       );
@@ -124,7 +122,7 @@ class _AssignessState extends State<Assigness> {
   }
 
   Future<void> saveData() async {
-    if (selectedWoId == null) {
+    if (selectedEmployedId == null) {
       // Handle the case when no card is selected
       return;
     }
@@ -132,30 +130,45 @@ class _AssignessState extends State<Assigness> {
     final url = Uri.parse(
         'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/assigness/As_post');
 
-    // Obtener el ID del card seleccionado
-    //final selectedCardId = selectedWoId;
-
-    // Campos con valores fijos
-    // final employeeId = 303;
-    // final staff = '303'; // Cambiar a un valor adecuado
-     //final userId = 1;
-
-    // Enviar solicitud POST
-    final response = await http.post(url, body: {
-      //'employee_id': selectedCardId,
-      'staff': '303',
-      'user_id': '1',
-      'wo_id': '436'
-    });
+    final response = await http.post(url,
+        body: {'staff': selectedEmployedId, 'user_id': '1', 'wo_id': widget.woId});
     print(response.body);
-    // Manejar la respuesta según tus necesidades
     if (response.statusCode == 200) {
-      // La solicitud fue exitosa
-      //print('Datos guardados correctamente');
+      final responseData = json.decode(response.body);
+
+      final message = responseData['msn'] as String;
+
+      // Mostrar un AlertDialog con el mensaje
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Mensaje'),
+            content: Text(message),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () {
+                  // Navegar a la página WODetail.dart
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => RedirectTo(
+                        idUser: widget.idUser,
+                        user_type_id: widget.user_type_id.toString(),
+                        woId: widget.woId,
+                      ),
+                    ),
+                  );
+                },
+                child: Text('Aceptar'),
+              ),
+            ],
+          );
+        },
+      );
     } else {
       // La solicitud falló
-      print(
-          'Error al guardar los datos. Código de respuesta: ${response.statusCode}');
+      print('Error to save data. Code: ${response.statusCode}');
     }
   }
 

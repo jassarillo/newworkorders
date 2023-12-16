@@ -76,6 +76,7 @@ class _AddNewOrderState extends State<AddNewOrder> {
   DateTime? selectedDate;
   String problem = '';
   int insertId = 0;
+  int brand_id =0;
   //XFile? _selectedImage;
   var imagePicker;
 
@@ -163,6 +164,7 @@ class _AddNewOrderState extends State<AddNewOrder> {
         if (response.statusCode == 200) {
           final data = jsonDecode(responseBody);
           insertId = data['insert_id'];
+          brand_id = data['brand_id'];
           final exitMessage = "New work order created Id: $insertId";
           showDialog(
             context: context,
@@ -182,7 +184,9 @@ class _AddNewOrderState extends State<AddNewOrder> {
                           builder: (context) => TroubleShooting(
                               insertId: insertId.toString(),
                               idUser: widget.idUser,
-                              user_type_id: widget.user_type_id),
+                              user_type_id: widget.user_type_id,
+                              brand_id: brand_id.toString(),
+                              ),
                         ),
                       );
                     },

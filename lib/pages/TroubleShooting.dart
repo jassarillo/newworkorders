@@ -7,11 +7,13 @@ class TroubleShooting extends StatefulWidget {
   final String insertId;
   final String idUser;
   final String user_type_id;
+  final String brand_id;
 
   const TroubleShooting(
       {required this.insertId,
       required this.idUser,
       required this.user_type_id,
+      required this.brand_id,
       Key? key})
       : super(key: key);
 
@@ -149,10 +151,11 @@ class _TroubleShootingState extends State<TroubleShooting> {
       body: {
         'tbs_title': titleId,
         'wo_id': insertId,
+        'brand_id': widget.brand_id,
       },
     );
-
-    print(response.body);
+    //print('brand-p:  ' + widget.brand_id);
+    //print(response.body);
     if (response.statusCode == 200) {
       final dynamic decodedResponse = json.decode(response.body);
 

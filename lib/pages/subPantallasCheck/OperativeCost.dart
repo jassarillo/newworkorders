@@ -5,11 +5,11 @@ import 'package:file_picker/file_picker.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:permission_handler/permission_handler.dart';
 
-class Quotation extends StatefulWidget {
+class OperativeCost extends StatefulWidget {
   final String woId;
   final String idUser;
   final String user_type_id;
-  const Quotation({
+  const OperativeCost({
     required this.woId,
     required this.idUser,
     required this.user_type_id,
@@ -17,52 +17,28 @@ class Quotation extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  State<Quotation> createState() => _QuotationState();
+  State<OperativeCost> createState() => _OperativeCostState();
 }
 
-class _QuotationState extends State<Quotation> {
+class _OperativeCostState extends State<OperativeCost> {
   dynamic selectedWoId;
   List<dynamic> jsonResponse = [];
   List<dynamic> filteredWorkOrders = [];
-  //String vendor_name = '';
+  String description = '';
   String cost = '';
   String filePath = '';
   String selectedFileName = '';
-  String? selectedVendorId;
-  List<Map<String, dynamic>> vendors = [];
+  final TextEditingController descriptionController = TextEditingController();
   final TextEditingController costController = TextEditingController();
 
   Future<void> _refresh() async {
-    await fetchQuotationsList(widget.woId);
+    await fetchOperativeCostList(widget.woId);
   }
 
   @override
   void initState() {
     super.initState();
-    fetchQuotationsList(widget.woId);
-    loadVendors();
-  }
-
-  Future<List<Map<String, dynamic>>> loadVendors() async {
-    final response = await http.get(Uri.parse(
-        'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/quotations/List_get/397'));
-
-    print(response.body);
-
-    if (response.statusCode == 200) {
-      final List<dynamic> data = json.decode(response.body);
-
-      if (data.isNotEmpty && data[0] != null) {
-        final List<dynamic> vendorsData = data[0];
-        vendors = List<Map<String, dynamic>>.from(vendorsData);
-        return vendors;
-      } else {
-        throw Exception('Respuesta de JSON vacía o mal formateada');
-      }
-    } else {
-      throw Exception(
-          'Error al cargar los vendedores. Código: ${response.statusCode}');
-    }
+    fetchOperativeCostList(widget.woId);
   }
 
   Future<void> pickFile() async {
@@ -89,12 +65,12 @@ class _QuotationState extends State<Quotation> {
     }
   }
 
-  Future<void> fetchQuotationsList(String woId) async {
+  Future<void> fetchOperativeCostList(String woId) async {
     final url = Uri.parse(
-        'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/quotations/Listquo_get/397');
-
+        //'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/operativecost/List_get/$woId');
+        'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/operativecost/List_get/391');
     final response = await http.get(url);
-
+    //print(response.body);
     if (response.statusCode == 200) {
       setState(() {
         jsonResponse = json.decode(response.body);
@@ -102,32 +78,34 @@ class _QuotationState extends State<Quotation> {
     }
   }
 
-  List<Widget> buildQuotationCards() {
+  List<Widget> buildOpCostCards() {
     if (jsonResponse == null ||
         jsonResponse.isEmpty ||
         jsonResponse[0] == null) {
       return [];
     }
-    List<dynamic> localQuotations;
+    List<dynamic> localOpCosts;
 
     if (filteredWorkOrders.isNotEmpty) {
-      localQuotations = List.from(filteredWorkOrders);
+      localOpCosts = List.from(filteredWorkOrders);
     } else {
-      localQuotations = List.from(jsonResponse[0]);
+      localOpCosts = List.from(jsonResponse[0]);
     }
 
-    return localQuotations.map<Widget>((quotation) {
-      final quotationId = quotation['quotation_id'].toString();
-      final vendorName = quotation['vendor_name'] as String?;
-      final urlFile = quotation['url'] as String?;
+    return localOpCosts.map<Widget>((opCost) {
+      final operationCostId = opCost['operation_cost_id'].toString();
+      final description = opCost['description'] as String?;
+      final url_file = opCost['url'] as String?;
 
+      print('Description: $description, URL: $url_file');
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 1.0, horizontal: 16.0),
         child: GestureDetector(
           onTap: () async {
-            if (vendorName != null && urlFile != null) {
+            if (description != null && url_file != null) {
+              // Verifica que description y url_file no sean nulos antes de abrir la URL
               await launchUrl(Uri.parse(
-                  'http://srv406820.hstgr.cloud/mainthelpdev/' + urlFile));
+                  'http://srv406820.hstgr.cloud/mainthelpdev/' + url_file));
             }
           },
           child: Card(
@@ -135,21 +113,12 @@ class _QuotationState extends State<Quotation> {
               borderRadius: BorderRadius.circular(12.0),
             ),
             child: ListTile(
-              leading: Radio(
-                value: quotationId,
-                groupValue: selectedWoId,
-                onChanged: (dynamic value) {
-                  setState(() {
-                    selectedWoId = value;
-                  });
-                },
-              ),
               title: Wrap(
                 alignment: WrapAlignment.spaceBetween,
                 runSpacing: 2,
                 children: <Widget>[
                   Text(
-                    vendorName ?? 'No description available',
+                    description ?? 'No description available',
                     style: TextStyle(
                       color: Colors.black,
                       fontWeight: FontWeight.bold,
@@ -158,14 +127,14 @@ class _QuotationState extends State<Quotation> {
                   ),
                 ],
               ),
-              subtitle: Text("Date: ${quotation['date']}"),
-              trailing: urlFile != null && urlFile.isNotEmpty
+              subtitle: Text("Date: ${opCost['date']}"),
+              trailing: url_file != null && url_file.isNotEmpty
                   ? GestureDetector(
                       onTap: () async {
-                        if (vendorName != null && urlFile != null) {
+                        if (description != null && url_file != null) {
                           await launchUrl(Uri.parse(
                               'http://srv406820.hstgr.cloud/mainthelpdev/' +
-                                  urlFile));
+                                  url_file));
                         }
                       },
                       child: Icon(
@@ -175,7 +144,8 @@ class _QuotationState extends State<Quotation> {
                     )
                   : Icon(
                       Icons.description,
-                      color: Colors.grey,
+                      color: Colors
+                          .grey, // Cambia el color a gris si la URL es nula o vacía
                     ),
             ),
           ),
@@ -185,18 +155,18 @@ class _QuotationState extends State<Quotation> {
   }
 
   Future<void> saveData() async {
-    if (selectedVendorId == null) {
+    if (selectedWoId == null) {
       return;
     }
-   // print('save datos');
+
     final url = Uri.parse(
-      'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/quotations/In_post',
+      'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/operativecost/In_post',
     );
 
     var request = http.MultipartRequest('POST', url)
       ..fields['user_id'] = widget.idUser
       ..fields['wo_id'] = widget.woId
-      ..fields['vendeo_id'] = selectedVendorId ?? ''
+      ..fields['description'] = descriptionController.text
       ..fields['cost'] = costController.text
       ..files.add(
         await http.MultipartFile.fromPath(
@@ -207,9 +177,10 @@ class _QuotationState extends State<Quotation> {
 
     var streamedResponse = await request.send();
 
+    // Obtén la respuesta completa utilizando http.Response.fromStream
     var response = await http.Response.fromStream(streamedResponse);
 
-    print('save...' + response.body);
+    print(response.body);
     if (response.statusCode == 200) {
       // Maneja el caso de éxito, por ejemplo, muestra una alerta.
       // Navega a WODetail.dart utilizando Navigator.push
@@ -281,22 +252,16 @@ class _QuotationState extends State<Quotation> {
               alignment: Alignment.topLeft,
               padding: const EdgeInsets.all(10),
               margin: const EdgeInsets.all(10),
-              child: Row(
+              child: const Row(
                 children: <Widget>[
-                  Container(
-                    padding: EdgeInsets.all(8.0),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.grey,
-                    ),
-                    child: Icon(
-                      Icons.attach_money,
-                      color: Colors.white,
-                    ),
+                  Icon(
+                    Icons.person,
+                    color: Colors.grey,
+                    size: 30.0,
                   ),
                   SizedBox(width: 10),
                   Text(
-                    'Quotation',
+                    'Operative Cost',
                     style: TextStyle(
                       color: Colors.black,
                       fontWeight: FontWeight.w500,
@@ -316,24 +281,10 @@ class _QuotationState extends State<Quotation> {
                     width: 1.0,
                   ),
                 ),
-                child: DropdownButtonFormField<String>(
-                  isExpanded: true,
-                  value: selectedVendorId,
-                  onChanged: (value) {
-                    setState(() {
-                      selectedVendorId = value;
-                    });
-                  },
-                  items: vendors
-                      .map<DropdownMenuItem<String>>(
-                        (vendor) => DropdownMenuItem<String>(
-                          value: vendor['vendor_id'].toString(),
-                          child: Text(vendor['vendor_name'].toString()),
-                        ),
-                      )
-                      .toList(),
+                child: TextField(
+                  controller: descriptionController,
                   decoration: InputDecoration(
-                    labelText: 'Vendor',
+                    labelText: 'Description',
                     border: InputBorder.none,
                     contentPadding: EdgeInsets.all(10),
                   ),
@@ -360,10 +311,17 @@ class _QuotationState extends State<Quotation> {
                 ),
               ),
             ),
+            // Padding(
+            //   padding: const EdgeInsets.all(16.0),
+            //   child: ElevatedButton(
+            //     onPressed: pickFile,
+            //     child: Text('Select File'),
+            //   ),
+            // ),
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Container(
-                width: double.infinity,
+                width: double.infinity, // Ocupa todo el ancho disponible
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(10),
                 ),
@@ -416,7 +374,7 @@ class _QuotationState extends State<Quotation> {
             Expanded(
               child: SingleChildScrollView(
                 child: Column(
-                  children: buildQuotationCards(),
+                  children: buildOpCostCards(),
                 ),
               ),
             ),
@@ -424,7 +382,7 @@ class _QuotationState extends State<Quotation> {
               padding: const EdgeInsets.all(20),
               minWidth: 5,
               height: 50,
-              onPressed: saveData, // Aquí se llama al método saveData
+              onPressed: saveData,
               color: const Color.fromARGB(255, 39, 17, 243),
               child: const Row(
                 mainAxisAlignment: MainAxisAlignment.center,
