@@ -77,6 +77,8 @@ class _WODetailState extends State<WODetail> {
 
   @override
   Widget build(BuildContext context) {
+    // final userType = int.tryParse(widget.user_type_id);
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.white,
@@ -123,8 +125,11 @@ class _WODetailState extends State<WODetail> {
             final unit = workOrderDetails?['unit'];
             final assetName = workOrderDetails?['asset_name'];
             final woDescription = workOrderDetails?['wo_description'];
-           final brand_id = workOrderDetails?['brand_id'];
-
+            final brand_id = workOrderDetails?['brand_id'];
+            final wostatus_id = workOrderDetails?['wostatus_id'];
+            final vAssigness = workOrderDetails?['vAssigness'];
+            final vQuotations = workOrderDetails?['vQuotations'];
+            // print('wostatus_id> ' + wostatus_id + ' A ' + vAssigness);
             return ListView(
               padding: const EdgeInsets.all(5),
               children: <Widget>[
@@ -138,7 +143,7 @@ class _WODetailState extends State<WODetail> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: <Widget>[
                             const Text(
-                              'Work Order Number 55',
+                              'Work Order Number ',
                               style: TextStyle(
                                 color: Color.fromARGB(255, 5, 5, 5),
                                 fontWeight: FontWeight.w500,
@@ -371,39 +376,40 @@ class _WODetailState extends State<WODetail> {
                   ],
                 ),
                 const SizedBox(height: 10),
-                MaterialButton(
-                  padding: const EdgeInsets.all(5),
-                  minWidth: 5,
-                  height: 50,
-                  onPressed: () {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => CheckIn(
-                                woId: woId,
-                                idUser: this.idUser!,
-                                latitudeA: widget.latitude,
-                                longitudeA: widget.longitude,
-                                site_id: widget.site_id,
-                                user_type_id: widget.user_type_id,
-                                priority: widget.priority)));
-                  },
-                  color: const Color.fromARGB(255, 39, 17, 243),
-                  child: const Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.access_time,
-                        color: Colors.white,
-                      ),
-                      SizedBox(width: 10),
-                      Text(
-                        'CHECK IN',
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ],
+                if (widget.user_type_id == '3' || widget.user_type_id == '7')
+                  MaterialButton(
+                    padding: const EdgeInsets.all(5),
+                    minWidth: 5,
+                    height: 50,
+                    onPressed: () {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => CheckIn(
+                                  woId: woId,
+                                  idUser: this.idUser!,
+                                  latitudeA: widget.latitude,
+                                  longitudeA: widget.longitude,
+                                  site_id: widget.site_id,
+                                  user_type_id: widget.user_type_id,
+                                  priority: widget.priority)));
+                    },
+                    color: const Color.fromARGB(255, 39, 17, 243),
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.access_time,
+                          color: Colors.white,
+                        ),
+                        SizedBox(width: 10),
+                        Text(
+                          'CHECK IN',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
                 InkWell(
                   onTap: () {
                     Navigator.push(
@@ -416,7 +422,7 @@ class _WODetailState extends State<WODetail> {
                   child: const Card(
                     child: ListTile(
                       leading: Icon(
-                        Icons.comment,
+                        Icons.photo,
                         color: Color.fromARGB(255, 124, 122, 122),
                       ),
                       title: Wrap(
@@ -441,6 +447,7 @@ class _WODetailState extends State<WODetail> {
                     ),
                   ),
                 ),
+                if(widget.user_type_id != '3' && widget.user_type_id != '7')
                 InkWell(
                   onTap: () {
                     Navigator.push(
@@ -478,133 +485,168 @@ class _WODetailState extends State<WODetail> {
                     ),
                   ),
                 ),
-                InkWell(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => Quotation(
+                if ((wostatus_id == '3' ||
+                        wostatus_id == '5' ||
+                        wostatus_id == '6' ||
+                        wostatus_id == '7' ||
+                        wostatus_id == '8' ||
+                        ((wostatus_id == '9' ||
+                                wostatus_id == '10' ||
+                                wostatus_id == '11' ||
+                                wostatus_id == '12') &&
+                            vQuotations == 1)) &&
+                    (widget.user_type_id != '3' && widget.user_type_id != '7'))
+                  InkWell(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => Quotation(
+                              woId: widget.woId,
+                              idUser: widget.idUser,
+                              user_type_id: widget.user_type_id),
+                        ),
+                      );
+                    },
+                    child: Card(
+                      child: ListTile(
+                        leading: Container(
+                          padding: EdgeInsets.all(8.0),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.grey,
+                          ),
+                          child: Icon(
+                            Icons.attach_money,
+                            color: Colors.white,
+                          ),
+                        ),
+                        title: Wrap(
+                          alignment: WrapAlignment.spaceBetween,
+                          runSpacing: 2,
+                          children: <Widget>[
+                            Text(
+                              'Quotations',
+                              style: TextStyle(
+                                color: Colors.black,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 20,
+                              ),
+                            ),
+                          ],
+                        ),
+                        subtitle: Text('Reported quotations'),
+                        trailing: Icon(
+                          Icons.arrow_forward,
+                          color: Color.fromARGB(255, 124, 122, 122),
+                        ),
+                      ),
+                    ),
+                  ),
+                if ((wostatus_id == '4' ||
+                        ((wostatus_id == '9' ||
+                                wostatus_id == '10' ||
+                                wostatus_id == '11' ||
+                                wostatus_id == '12') &&
+                            vAssigness == 1)) &&
+                    (widget.user_type_id != '3' && widget.user_type_id != '7'))
+                  InkWell(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => OperativeCost(
                             woId: widget.woId,
                             idUser: widget.idUser,
-                            user_type_id: widget.user_type_id),
-                      ),
-                    );
-                  },
-                  child: Card(
-                    child: ListTile(
-                      leading: Container(
-                        padding: EdgeInsets.all(8.0),
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors.grey,
+                            user_type_id: widget.user_type_id,
+                          ),
                         ),
-                        child: Icon(
-                          Icons.attach_money,
-                          color: Colors.white,
+                      );
+                    },
+                    child: Card(
+                      child: ListTile(
+                        leading: Container(
+                          padding: EdgeInsets.all(8.0),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.grey,
+                          ),
+                          child: Icon(
+                            Icons.attach_money,
+                            color: Colors.white,
+                          ),
+                        ),
+                        title: Wrap(
+                          alignment: WrapAlignment.spaceBetween,
+                          runSpacing: 2,
+                          children: <Widget>[
+                            Text(
+                              'Operative Cost',
+                              style: TextStyle(
+                                color: Colors.black,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 20,
+                              ),
+                            ),
+                          ],
+                        ),
+                        subtitle: Text(''),
+                        trailing: Icon(
+                          Icons.arrow_forward,
+                          color: Color.fromARGB(255, 124, 122, 122),
                         ),
                       ),
-                      title: Wrap(
-                        alignment: WrapAlignment.spaceBetween,
-                        runSpacing: 2,
-                        children: <Widget>[
-                          Text(
-                            'Quotation',
-                            style: TextStyle(
-                              color: Colors.black,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 20,
+                    ),
+                  ),
+                if ((wostatus_id == '3' ||
+                        wostatus_id == '4' ||
+                        ((wostatus_id == '9' ||
+                                wostatus_id == '10' ||
+                                wostatus_id == '11' ||
+                                wostatus_id == '12') &&
+                            vAssigness == 1)) &&
+                    (widget.user_type_id != '3' && widget.user_type_id != '7'))
+                  InkWell(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => Assigness(
+                              woId: woId,
+                              idUser: widget.idUser,
+                              user_type_id: widget.user_type_id),
+                        ),
+                      );
+                    },
+                    child: const Card(
+                      child: ListTile(
+                        leading: Icon(
+                          Icons.person,
+                          color: Color.fromARGB(255, 124, 122, 122),
+                        ),
+                        title: Wrap(
+                          alignment: WrapAlignment.spaceBetween,
+                          runSpacing: 2,
+                          children: <Widget>[
+                            Text(
+                              'Assigness',
+                              style: TextStyle(
+                                color: Colors.black,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 20,
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                      subtitle: Text('Reported quotations55'),
-                      trailing: Icon(
-                        Icons.arrow_forward,
-                        color: Color.fromARGB(255, 124, 122, 122),
+                          ],
+                        ),
+                        subtitle: Text(''),
+                        trailing: Icon(
+                          Icons.arrow_forward,
+                          color: Color.fromARGB(255, 124, 122, 122),
+                        ),
                       ),
                     ),
                   ),
-                ),
-                InkWell(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => OperativeCost(
-                            woId: widget.woId,
-                            idUser: widget.idUser,
-                            user_type_id: widget.user_type_id),
-                      ),
-                    );
-                  },
-                  child: const Card(
-                    child: ListTile(
-                      leading: Icon(
-                        Icons.comment,
-                        color: Color.fromARGB(255, 124, 122, 122),
-                      ),
-                      title: Wrap(
-                        alignment: WrapAlignment.spaceBetween,
-                        runSpacing: 2,
-                        children: <Widget>[
-                          Text(
-                            'Operative Cost',
-                            style: TextStyle(
-                              color: Colors.black,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 20,
-                            ),
-                          ),
-                        ],
-                      ),
-                      subtitle: Text(''),
-                      trailing: Icon(
-                        Icons.arrow_forward,
-                        color: Color.fromARGB(255, 124, 122, 122),
-                      ),
-                    ),
-                  ),
-                ),
-                InkWell(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => Assigness(
-                            woId: woId,
-                            idUser: widget.idUser,
-                            user_type_id: widget.user_type_id),
-                      ),
-                    );
-                  },
-                  child: const Card(
-                    child: ListTile(
-                      leading: Icon(
-                        Icons.person,
-                        color: Color.fromARGB(255, 124, 122, 122),
-                      ),
-                      title: Wrap(
-                        alignment: WrapAlignment.spaceBetween,
-                        runSpacing: 2,
-                        children: <Widget>[
-                          Text(
-                            'Assigness',
-                            style: TextStyle(
-                              color: Colors.black,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 20,
-                            ),
-                          ),
-                        ],
-                      ),
-                      subtitle: Text('woDescription ccdcd'),
-                      trailing: Icon(
-                        Icons.arrow_forward,
-                        color: Color.fromARGB(255, 124, 122, 122),
-                      ),
-                    ),
-                  ),
-                ),
+                  if(widget.user_type_id != '3' && widget.user_type_id != '7')
                 InkWell(
                   onTap: () {
                     Navigator.push(
@@ -622,7 +664,7 @@ class _WODetailState extends State<WODetail> {
                   child: const Card(
                     child: ListTile(
                       leading: Icon(
-                        Icons.person,
+                        Icons.list,
                         color: Color.fromARGB(255, 124, 122, 122),
                       ),
                       title: Wrap(
@@ -639,7 +681,7 @@ class _WODetailState extends State<WODetail> {
                           ),
                         ],
                       ),
-                      subtitle: Text('woDescription ccdcd'),
+                      subtitle: Text(''),
                       trailing: Icon(
                         Icons.arrow_forward,
                         color: Color.fromARGB(255, 124, 122, 122),

@@ -68,7 +68,7 @@ class _OperativeCostState extends State<OperativeCost> {
   Future<void> fetchOperativeCostList(String woId) async {
     final url = Uri.parse(
         //'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/operativecost/List_get/$woId');
-        'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/operativecost/List_get/391');
+        'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/operativecost/List_get/$woId');
     final response = await http.get(url);
     //print(response.body);
     if (response.statusCode == 200) {
@@ -127,7 +127,7 @@ class _OperativeCostState extends State<OperativeCost> {
                   ),
                 ],
               ),
-              subtitle: Text("Date: ${opCost['date']}"),
+              subtitle: Text("Date: ${opCost['date']} | Cost: ${opCost['cost']}"),
               trailing: url_file != null && url_file.isNotEmpty
                   ? GestureDetector(
                       onTap: () async {

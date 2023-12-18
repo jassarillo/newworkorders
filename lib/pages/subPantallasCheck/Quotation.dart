@@ -10,7 +10,9 @@ class Quotation extends StatefulWidget {
   final String woId;
   final String idUser;
   final String user_type_id;
-  const Quotation({
+  String selectedQuotationId = '';
+
+  Quotation({
     required this.woId,
     required this.idUser,
     required this.user_type_id,
@@ -31,6 +33,7 @@ class _QuotationState extends State<Quotation> {
   String selectedFileName = '';
   String? selectedVendorId;
   List<Map<String, dynamic>> vendors = [];
+
   final TextEditingController costController = TextEditingController();
 
   Future<void> _refresh() async {
@@ -92,13 +95,25 @@ class _QuotationState extends State<Quotation> {
 
   Future<void> fetchQuotationsList(String woId) async {
     final url = Uri.parse(
-        'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/quotations/Listquo_get/$woId');
+      'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/quotations/Listquo_get/$woId',
+    );
 
     final response = await http.get(url);
 
     if (response.statusCode == 200) {
       setState(() {
         jsonResponse = json.decode(response.body);
+
+        // Busca la entrada con quo_hd_selected = '1' y guarda el quotation_id
+        if (jsonResponse != null && jsonResponse!.isNotEmpty) {
+          for (var quotation in jsonResponse![0]) {
+            if (quotation['quo_hd_selected'] == '1') {
+              widget.selectedQuotationId = quotation['quotation_id'].toString();
+              print('julito_kito el chingon! ' + widget.selectedQuotationId);
+              break;
+            }
+          }
+        }
       });
     }
   }
@@ -117,87 +132,88 @@ class _QuotationState extends State<Quotation> {
       localQuotations = List.from(jsonResponse[0]);
     }
 
-    return localQuotations.map<Widget>((quotation) {
-      final quotationId = quotation['quotation_id'].toString();
-      final vendorName = quotation['vendor_name'] as String?;
-      final urlFile = quotation['url'] as String?;
-      final declined = quotation['declined'] as String?;
+return localQuotations.map<Widget>((quotation) {
+    final quotationId = quotation['quotation_id'].toString();
+    final vendorName = quotation['vendor_name'] as String?;
+    final urlFile = quotation['url'] as String?;
+    final declined = quotation['declined'] as String?;
+    final quoHdSelected = quotation['quo_hd_selected'];
 
-      bool isDeclined = declined == '1';
+    bool isDeclined = declined == '1';
+    bool isQuoHdSelected = quoHdSelected == '1';
 
-      return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 1.0, horizontal: 16.0),
-        child: GestureDetector(
-          onTap: () async {
-            if (vendorName != null && urlFile != null) {
-              await launchUrl(Uri.parse(
-                  'http://srv406820.hstgr.cloud/mainthelpdev/' + urlFile));
-            }
-          },
-          child: Card(
-            color: isDeclined == true ? Colors.grey : null,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12.0),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 1.0, horizontal: 16.0),
+      child: GestureDetector(
+        onTap: () async {
+          if (vendorName != null && urlFile != null) {
+            await launchUrl(Uri.parse(
+                'http://srv406820.hstgr.cloud/mainthelpdev/' + urlFile));
+          }
+        },
+        child: Card(
+          color: isDeclined ? Colors.grey : (isQuoHdSelected ? Color.fromARGB(255, 195, 236, 185) : null),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12.0),
+          ),
+          child: ListTile(
+            title: Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              runSpacing: 2,
+              children: <Widget>[
+                Radio(
+                  value: quotationId,
+                  groupValue: selectedWoId,
+                  onChanged: (dynamic value) {
+                    setState(() {
+                      selectedWoId = value;
+                    });
+                    requestApproval(value);
+                  },
+                  materialTapTargetSize: isDeclined
+                      ? MaterialTapTargetSize.shrinkWrap
+                      : MaterialTapTargetSize.padded,
+                  // Establece el estado checked del Radio según quo_hd_selected
+                  activeColor: Color.fromARGB(255, 40, 119, 187),
+                  toggleable: true,
+                  // Permite deseleccionar el radio button
+                  visualDensity: VisualDensity.compact,
+                  // Ajusta la densidad visual para que el radio button sea más pequeño
+                ),
+                Text(
+                  vendorName ?? 'No description available',
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15,
+                  ),
+                ),
+              ],
             ),
-            child: ListTile(
-              title: Wrap(
-                alignment: WrapAlignment.spaceBetween,
-                runSpacing: 2,
-                children: <Widget>[
-                  AbsorbPointer(
-                    absorbing: isDeclined == true,
-                    child: Radio(
-                      value: quotationId,
-                      groupValue: selectedWoId,
-                      onChanged: (dynamic value) {
-                        setState(() {
-                          selectedWoId = value;
-                        });
-                        requestApproval(value);
-                      },
-                      // Disable the Radio button when isDeclined is true
-                      // (i.e., declined is equal to 1)
-                      // If declined is null or false, the Radio button is enabled.
-                      materialTapTargetSize: isDeclined == true
-                          ? MaterialTapTargetSize.shrinkWrap
-                          : MaterialTapTargetSize.padded,
-                      // Adjust the size of the tap target accordingly
-                    ),
-                  ),
-                  Text(
-                    vendorName ?? 'No description available',
-                    style: TextStyle(
-                      color: Colors.black,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 15,
-                    ),
-                  ),
-                ],
-              ),
-              subtitle: Text("Date: ${quotation['date']}"),
-              trailing: urlFile != null && urlFile.isNotEmpty
-                  ? GestureDetector(
-                      onTap: () async {
-                        if (vendorName != null && urlFile != null) {
-                          await launchUrl(Uri.parse(
-                              'http://srv406820.hstgr.cloud/mainthelpdev/' +
-                                  urlFile));
-                        }
-                      },
-                      child: Icon(
-                        Icons.description,
-                        color: Colors.blue,
-                      ),
-                    )
-                  : Icon(
+            subtitle: Text("Date: ${quotation['date']}"),
+            trailing: urlFile != null && urlFile.isNotEmpty
+                ? GestureDetector(
+                    onTap: () async {
+                      if (vendorName != null && urlFile != null) {
+                        await launchUrl(Uri.parse(
+                            'http://srv406820.hstgr.cloud/mainthelpdev/' +
+                                urlFile));
+                      }
+                    },
+                    child: Icon(
                       Icons.description,
-                      color: Colors.grey,
+                      color: Colors.blue,
                     ),
-            ),
+                  )
+                : Icon(
+                    Icons.description,
+                    color: Colors.grey,
+                  ),
           ),
         ),
-      );
-    }).toList();
+      ),
+    );
+  }).toList();
   }
 
   Future<void> saveData() async {
@@ -308,7 +324,11 @@ class _QuotationState extends State<Quotation> {
   // Función para la API 'Approval_mm_post'
   Future<void> approveQuo() async {
     try {
-      print(' woid-   ' + widget.woId  + widget.idUser + ' usertype- ' +widget.user_type_id);
+      print(' woid-   ' +
+          widget.woId +
+          widget.idUser +
+          ' usertype- ' +
+          widget.user_type_id);
 
       print('intenta aprobar');
       final response = await http.post(
@@ -317,12 +337,13 @@ class _QuotationState extends State<Quotation> {
         ),
         body: {
           'wo_id': widget.woId,
-          'quotation_id': '22',
+          'quotation_id':
+              widget.selectedQuotationId, // Usa el quotation_id guardado
           'user_id': widget.idUser,
           'user_type_id': widget.user_type_id,
         },
       );
-      print('aprobar -- ' + response.body);
+
       if (response.statusCode == 200) {
         final dynamic decodedResponse = json.decode(response.body);
 
@@ -345,21 +366,27 @@ class _QuotationState extends State<Quotation> {
     }
   }
 
-// Función para la API 'Decline_mm_post'
-  Future<void> cancelQuo() async {
+  Future<void> SevenApproveQuo() async {
     try {
+      print(' woid-   ' +
+          widget.woId +
+          widget.idUser +
+          ' usertype- ' +
+          widget.user_type_id);
+
+      print('intenta aprobar');
       final response = await http.post(
         Uri.parse(
-          'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/quotations/Decline_mm_post',
+          'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/quotations/Approval_ceo_post',
         ),
         body: {
           'wo_id': widget.woId,
-          'quotation_id': '22',
+          'quotation_id':
+              widget.selectedQuotationId, // Usa el quotation_id guardado
           'user_id': widget.idUser,
           'user_type_id': widget.user_type_id,
         },
       );
-      print('cancelar -- ' + response.body);
 
       if (response.statusCode == 200) {
         final dynamic decodedResponse = json.decode(response.body);
@@ -381,6 +408,110 @@ class _QuotationState extends State<Quotation> {
     } catch (error) {
       print('Error making POST request: $error');
     }
+  }
+
+  // Resto de tu código...
+
+  Future<void> cancelQuo() async {
+    try {
+      final response = await http.post(
+        Uri.parse(
+          'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/quotations/Decline_mm_post',
+        ),
+        body: {
+          'wo_id': widget.woId,
+          'quotation_id':
+              widget.selectedQuotationId, // Usa el quotation_id guardado
+          'user_id': widget.idUser,
+          'user_type_id': widget.user_type_id,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final dynamic decodedResponse = json.decode(response.body);
+
+        if (decodedResponse is Map<String, dynamic>) {
+          final String message = decodedResponse['msn'];
+          final int tipo = decodedResponse['tipo'];
+
+          if (tipo == 1) {
+            showAlert(message, tipo);
+          } else {
+            print('Tipo no es 1');
+          }
+        }
+      } else {
+        print(
+            'Failed to make POST request. Status code: ${response.statusCode}');
+      }
+    } catch (error) {
+      print('Error making POST request: $error');
+    }
+  }
+
+  Future<void> SevenCancelQuo() async {
+    try {
+      final response = await http.post(
+        Uri.parse(
+          'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/quotations/Decline_ceo_pos',
+        ),
+        body: {
+          'wo_id': widget.woId,
+          'quotation_id':
+              widget.selectedQuotationId, // Usa el quotation_id guardado
+          'user_id': widget.idUser,
+          'user_type_id': widget.user_type_id,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final dynamic decodedResponse = json.decode(response.body);
+
+        if (decodedResponse is Map<String, dynamic>) {
+          final String message = decodedResponse['msn'];
+          final int tipo = decodedResponse['tipo'];
+
+          if (tipo == 1) {
+            showAlert(message, tipo);
+          } else {
+            print('Tipo no es 1');
+          }
+        }
+      } else {
+        print(
+            'Failed to make POST request. Status code: ${response.statusCode}');
+      }
+    } catch (error) {
+      print('Error making POST request: $error');
+    }
+  }
+
+  bool isWostatusIdEqualSix() {
+    // Verifica si el valor de wostatus_id es igual a 6
+    // Asume que jsonResponse es la variable que contiene tu JSON
+    if (jsonResponse != null && jsonResponse.isNotEmpty) {
+      final List<dynamic> quotations = jsonResponse[0];
+      if (quotations.isNotEmpty) {
+        final Map<String, dynamic> firstQuotation = quotations[0];
+        final String wostatusId = firstQuotation['wostatus_id'].toString();
+        return wostatusId == '6';
+      }
+    }
+    return false;
+  }
+
+  bool isWostatusIdEqualSeven() {
+    // Verifica si el valor de wostatus_id es igual a 6
+    // Asume que jsonResponse es la variable que contiene tu JSON
+    if (jsonResponse != null && jsonResponse.isNotEmpty) {
+      final List<dynamic> quotations = jsonResponse[0];
+      if (quotations.isNotEmpty) {
+        final Map<String, dynamic> firstQuotation = quotations[0];
+        final String wostatusId = firstQuotation['wostatus_id'].toString();
+        return wostatusId == '7';
+      }
+    }
+    return false;
   }
 
   @override
@@ -595,22 +726,55 @@ class _QuotationState extends State<Quotation> {
               ),
             ),
             Row(
-              mainAxisAlignment: MainAxisAlignment
-                  .center, // Centra los botones en el espacio disponible
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                ElevatedButton(
-                  onPressed: () {
-                    approveQuo();
-                  },
-                  child: Text('Approve Quo'),
-                ),
-                SizedBox(width: 20), // Agrega un espacio entre los botones
-                ElevatedButton(
-                  onPressed: () {
-                    cancelQuo();
-                  },
-                  child: Text('Cancel Quo'),
-                ),
+                if (isWostatusIdEqualSix())
+                  ElevatedButton(
+                    onPressed: () {
+                      approveQuo();
+                    },
+                    child: Text('Approve Quo'),
+                  ),
+                SizedBox(width: 20),
+                if (isWostatusIdEqualSix())
+                  ElevatedButton(
+                    onPressed: () {
+                      cancelQuo();
+                    },
+                    style: isWostatusIdEqualSix()
+                        ? null // Deja el estilo predeterminado si wostatus_id es igual a 6
+                        : ButtonStyle(
+                            backgroundColor:
+                                MaterialStateProperty.all(Colors.grey),
+                          ),
+                    child: Text('Cancel Quo'),
+                  ),
+              ],
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if (isWostatusIdEqualSeven())
+                  ElevatedButton(
+                    onPressed: () {
+                      SevenApproveQuo();
+                    },
+                    child: Text('Approve Quo 7'),
+                  ),
+                SizedBox(width: 20),
+                if (isWostatusIdEqualSeven())
+                  ElevatedButton(
+                    onPressed: () {
+                      SevenCancelQuo();
+                    },
+                    style: isWostatusIdEqualSix()
+                        ? null // Deja el estilo predeterminado si wostatus_id es igual a 6
+                        : ButtonStyle(
+                            backgroundColor:
+                                MaterialStateProperty.all(Colors.grey),
+                          ),
+                    child: Text('Cancel Quo 7'),
+                  ),
               ],
             ),
             Expanded(
