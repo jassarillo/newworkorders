@@ -53,7 +53,7 @@ class _RedirectToState extends State<RedirectTo> {
     try {
       final response = await http.get(Uri.parse(
           'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/workorders/Wo_get/$woId/1/1'));
-      print(response.body);
+      //print(response.body);
 
       if (response.statusCode == 200) {
         final List<dynamic> workOrders = json.decode(response.body);

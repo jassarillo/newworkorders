@@ -98,7 +98,7 @@ class _TroubleShootingState extends State<TroubleShooting> {
               widget.insertId),
     );
 
-    print("==>>>>" + response.body);
+    print("list category ==>>>>" + response.body);
 
     if (response.statusCode == 200) {
       final List<dynamic> data = json.decode(response.body);
@@ -110,38 +110,39 @@ class _TroubleShootingState extends State<TroubleShooting> {
         workOrderUnitList = statuses;
       });
 
-      print('Work Order Units:');
+      //print('Work Order Units:');
       workOrderUnitList.forEach((element) {
-        print('${element.title_id}: ${element.title_description}');
+        //print('${element.title_id}: ${element.title_description}');
       });
     } else {
       throw Exception('Failed to load work order data');
     }
   }
 
-  Future<void> fetchWorkOrderAssetList(String siteId) async {
-    final response = await http.post(
-      Uri.parse(
-          'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/workorders/Unit_asset_post'),
-      body: {
-        "site_id": siteId,
-      },
-    );
+  // Future<void> fetchWorkOrderAssetList(String siteId) async {
+  //   final response = await http.post(
+  //     Uri.parse(
+  //         'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/workorders/Unit_asset_post'),
+  //     body: {
+  //       "site_id": siteId,
+  //     },
+  //   );
 
-    if (response.statusCode == 200) {
-      final List<dynamic> data = json.decode(response.body);
-      final List<WorkOrderAsset> assets =
-          data.map((e) => WorkOrderAsset.fromJson(e)).toList();
+  //   if (response.statusCode == 200) {
+  //     final List<dynamic> data = json.decode(response.body);
+  //     final List<WorkOrderAsset> assets =
+  //         data.map((e) => WorkOrderAsset.fromJson(e)).toList();
 
-      setState(() {
-        workOrderAssetList = assets;
-      });
-    } else {
-      throw Exception('Failed to load work order assets');
-    }
-  }
+  //     setState(() {
+  //       workOrderAssetList = assets;
+  //     });
+  //   } else {
+  //     throw Exception('Failed to load work order assets');
+  //   }
+  // }
 
   Future<void> fetchtroubleShooting(String insertId, String titleId) async {
+    //List preguntas
     final postUrl = Uri.parse(
       'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/troubleshooting/List_questions_post',
     );
@@ -176,7 +177,7 @@ class _TroubleShootingState extends State<TroubleShooting> {
         });
       }
     } else {
-      // Manejar el error de la solicitud si es necesario.
+      // Manejar el error
     }
   }
 
@@ -199,6 +200,8 @@ class _TroubleShootingState extends State<TroubleShooting> {
     return trueChecksCount;
   }
 
+  Map<String, String> respuestasSeleccionadas = {};
+
   List<Widget> buildCheckboxList() {
     return jsonResponseCheck.map<Widget>((question) {
       final tbsId = question['tbs_id'] as String;
@@ -207,31 +210,48 @@ class _TroubleShootingState extends State<TroubleShooting> {
       // Ajuste aquí: Si el campo 'check' es 1, isChecked es true, de lo contrario, usa el valor almacenado
       bool isChecked = question['check'] == 1;
 
-      return CheckboxListTile(
-        controlAffinity: ListTileControlAffinity.leading,
-        title: Align(
-          alignment: Alignment(-1.2, 0),
-          child: Text(description),
-        ),
-        value: isChecked,
-        onChanged: enableCheckboxes
-            ? (bool? value) {
-                setState(() {
-                  isChecked = value ?? false;
-                  selectedQuestions[tbsId] = isChecked;
-                  //print("  cuantos -- >  " + trueChecksCount.toString());
-                  // // También actualizamos el estado general de jsonResponseCheck
-                  jsonResponseCheck = List<Map<String, dynamic>>.from(
-                      jsonResponseCheck.map((q) {
-                    if (q['tbs_id'] == tbsId) {
-                      q['check'] = isChecked ? 1 : 0;
-                    }
-                    return q;
-                  }));
-                  //countTrueChecks();
-                });
-              }
-            : null, // If enableCheckboxes is false, disable the checkbox
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          CheckboxListTile(
+            controlAffinity: ListTileControlAffinity.leading,
+            title: Align(
+              alignment: Alignment(-1.2, 0),
+              child: Text(description),
+            ),
+            value: isChecked,
+            onChanged: enableCheckboxes
+                ? (bool? value) {
+                    setState(() {
+                      isChecked = value ?? false;
+                      selectedQuestions[tbsId] = isChecked;
+
+                      // También actualizamos el estado general de jsonResponseCheck
+                      jsonResponseCheck = List<Map<String, dynamic>>.from(
+                          jsonResponseCheck.map((q) {
+                        if (q['tbs_id'] == tbsId) {
+                          q['check'] = isChecked ? 1 : 0;
+                        }
+                        return q;
+                      }));
+                    });
+                  }
+                : null, // If enableCheckboxes is false, disable the checkbox
+          ),
+          if (isChecked) // Mostrar el TextField solo si el checkbox está marcado
+            Padding(
+              padding: const EdgeInsets.only(left: 24.0),
+              child: TextField(
+                decoration: InputDecoration(
+                  labelText: 'Write an answer',
+                ),
+                onChanged: (text) {
+                  // Almacena la respuesta junto con su ID correspondiente
+                  respuestasSeleccionadas['desc$tbsId'] = text;
+                },
+              ),
+            ),
+        ],
       );
     }).toList();
   }
@@ -273,7 +293,8 @@ class _TroubleShootingState extends State<TroubleShooting> {
         .map<String>((entry) => entry.key)
         .toList();
 
-    print('Selected Question IDs: $selectedQuestionIds');
+    //print('Selected Question IDs: $selectedQuestionIds');
+    //print('Selected Answers: $respuestasSeleccionadas');
 
     try {
       final response = await http.post(
@@ -281,16 +302,17 @@ class _TroubleShootingState extends State<TroubleShooting> {
           'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/troubleshooting/In_post',
         ),
         body: {
-          'selectedQuestionIds':
-              selectedQuestionIds.join(','), // Convertir a una cadena CSV
+          'selectedQuestionIds': selectedQuestionIds.join(','),
           'wo_id': widget.insertId,
           'user_id': widget.idUser,
           'tbs_title': titleId,
+          'brand_id': widget.brand_id,
+          'respuestasSeleccionadas': jsonEncode(respuestasSeleccionadas),
         },
       );
 
-      print(titleId);
-      print(response.body);
+      //print(titleId);
+      //print(response.body);
 
       if (response.statusCode == 200) {
         final dynamic decodedResponse = json.decode(response.body);
@@ -402,7 +424,7 @@ class _TroubleShootingState extends State<TroubleShooting> {
 
                 if (newValue != null) {
                   fetchtroubleShooting(widget.insertId, newValue.title_id);
-                  fetchWorkOrderAssetList(newValue.title_id);
+                  //fetchWorkOrderAssetList(newValue.title_id);
 
                   if (workOrderAssetList.isNotEmpty) {
                     setState(() {
