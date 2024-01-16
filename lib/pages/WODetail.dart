@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'CheckIn.dart';
 import 'Comments.dart';
 import 'WorkOrders.dart';
+import 'RedirectTo.dart';
 import 'TroubleShooting.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -73,6 +74,86 @@ class _WODetailState extends State<WODetail> {
   void initState() {
     super.initState();
     idUser = widget.idUser;
+  }
+
+  void approveDiez() async {
+    try {
+      final response = await sendPostRequest(
+          'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/confirmation/Conf_post',
+          {'wo_id': widget.woId, 'user_id': widget.idUser, 'respQ': '1'});
+
+      if (response['tipo'] == 1) {
+        showAlertAndRedirect(response['msn']);
+      }
+    } catch (e) {
+      print('Error en la solicitud HTTP: $e');
+      // Puedes manejar el error aquí si es necesario
+    }
+  }
+
+  void cancelDiez() async {
+    try {
+      final response = await sendPostRequest(
+          'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/confirmation/Conf_post',
+          {'wo_id': widget.woId, 'user_id': widget.idUser, 'respQ': '0'});
+
+      if (response['tipo'] == 1) {
+        showAlertAndRedirect(response['msn']);
+      }
+    } catch (e) {
+      print('Error en la solicitud HTTP: $e');
+      // Puedes manejar el error aquí si es necesario
+    }
+  }
+
+  void showAlertAndRedirect(String message) {
+    showAlert(context, message, () {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => RedirectTo(
+            idUser: widget.idUser,
+            user_type_id: widget.user_type_id,
+            woId: widget.woId,
+          ),
+        ),
+      );
+    });
+  }
+
+  void showAlert(
+      BuildContext context, String message, VoidCallback onOKPressed) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Alert'),
+          content: Text(message),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                if (onOKPressed != null) {
+                  onOKPressed();
+                }
+              },
+              child: Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<Map<String, dynamic>> sendPostRequest(
+      String url, Map<String, dynamic> data) async {
+    final response = await http.post(Uri.parse(url), body: data);
+    print(response.body);
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else {
+      throw Exception('Failed to load data');
+    }
   }
 
   @override
@@ -410,6 +491,42 @@ class _WODetailState extends State<WODetail> {
                       ],
                     ),
                   ),
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    if (workOrderDetails?['wostatus_id'] == '10' &&
+                        (widget.user_type_id != '3' &&
+                            widget.user_type_id != '7'))
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text('Has your problem been resolved?'),
+                        ],
+                      ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        if (workOrderDetails?['wostatus_id'] == '10' && (widget.user_type_id != '3' && widget.user_type_id != '7'))
+                          ElevatedButton(
+                            onPressed: () {
+                              // Lógica para ApproveDiez
+                              approveDiez();
+                            },
+                            child: Text('Yes'),
+                          ),
+                        SizedBox(width: 20),
+                        if (workOrderDetails?['wostatus_id'] == '10')
+                          ElevatedButton(
+                            onPressed: () {
+                              // Lógica para CancelDiez
+                              cancelDiez();
+                            },
+                            child: Text('No'),
+                          ),
+                      ],
+                    ),
+                  ],
+                ),
                 InkWell(
                   onTap: () {
                     Navigator.push(
@@ -447,44 +564,44 @@ class _WODetailState extends State<WODetail> {
                     ),
                   ),
                 ),
-                if(widget.user_type_id != '3' && widget.user_type_id != '7')
-                InkWell(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => Comments(woId: woId),
-                      ),
-                    );
-                  },
-                  child: const Card(
-                    child: ListTile(
-                      leading: Icon(
-                        Icons.comment,
-                        color: Color.fromARGB(255, 124, 122, 122),
-                      ),
-                      title: Wrap(
-                        alignment: WrapAlignment.spaceBetween,
-                        runSpacing: 2,
-                        children: <Widget>[
-                          Text(
-                            'Comments',
-                            style: TextStyle(
-                              color: Colors.black,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 20,
+                if (widget.user_type_id != '3' && widget.user_type_id != '7')
+                  InkWell(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => Comments(woId: woId),
+                        ),
+                      );
+                    },
+                    child: const Card(
+                      child: ListTile(
+                        leading: Icon(
+                          Icons.comment,
+                          color: Color.fromARGB(255, 124, 122, 122),
+                        ),
+                        title: Wrap(
+                          alignment: WrapAlignment.spaceBetween,
+                          runSpacing: 2,
+                          children: <Widget>[
+                            Text(
+                              'Comments',
+                              style: TextStyle(
+                                color: Colors.black,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 20,
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                      subtitle: Text(''),
-                      trailing: Icon(
-                        Icons.arrow_forward,
-                        color: Color.fromARGB(255, 124, 122, 122),
+                          ],
+                        ),
+                        subtitle: Text(''),
+                        trailing: Icon(
+                          Icons.arrow_forward,
+                          color: Color.fromARGB(255, 124, 122, 122),
+                        ),
                       ),
                     ),
                   ),
-                ),
                 if ((wostatus_id == '3' ||
                         wostatus_id == '5' ||
                         wostatus_id == '6' ||
@@ -646,49 +763,49 @@ class _WODetailState extends State<WODetail> {
                       ),
                     ),
                   ),
-                  if(widget.user_type_id != '3' && widget.user_type_id != '7')
-                InkWell(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => TroubleShooting(
-                          insertId: woId.toString(),
-                          idUser: widget.idUser,
-                          user_type_id: widget.user_type_id,
-                          brand_id: brand_id.toString(),
+                if (widget.user_type_id != '3' && widget.user_type_id != '7')
+                  InkWell(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => TroubleShooting(
+                            insertId: woId.toString(),
+                            idUser: widget.idUser,
+                            user_type_id: widget.user_type_id,
+                            brand_id: brand_id.toString(),
+                          ),
+                        ),
+                      );
+                    },
+                    child: const Card(
+                      child: ListTile(
+                        leading: Icon(
+                          Icons.list,
+                          color: Color.fromARGB(255, 124, 122, 122),
+                        ),
+                        title: Wrap(
+                          alignment: WrapAlignment.spaceBetween,
+                          runSpacing: 2,
+                          children: <Widget>[
+                            Text(
+                              'TroubleShoting',
+                              style: TextStyle(
+                                color: Colors.black,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 20,
+                              ),
+                            ),
+                          ],
+                        ),
+                        subtitle: Text(''),
+                        trailing: Icon(
+                          Icons.arrow_forward,
+                          color: Color.fromARGB(255, 124, 122, 122),
                         ),
                       ),
-                    );
-                  },
-                  child: const Card(
-                    child: ListTile(
-                      leading: Icon(
-                        Icons.list,
-                        color: Color.fromARGB(255, 124, 122, 122),
-                      ),
-                      title: Wrap(
-                        alignment: WrapAlignment.spaceBetween,
-                        runSpacing: 2,
-                        children: <Widget>[
-                          Text(
-                            'TroubleShoting',
-                            style: TextStyle(
-                              color: Colors.black,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 20,
-                            ),
-                          ),
-                        ],
-                      ),
-                      subtitle: Text(''),
-                      trailing: Icon(
-                        Icons.arrow_forward,
-                        color: Color.fromARGB(255, 124, 122, 122),
-                      ),
                     ),
-                  ),
-                )
+                  )
               ],
             );
           } else {
