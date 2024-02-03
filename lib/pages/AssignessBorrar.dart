@@ -22,6 +22,7 @@ class _AssignessState extends State<Assigness> {
   Future<void> _refresh() async {
     await fetchWorkOrderDetailsMessages(widget.woId);
   }
+
   Color getColorForPriority(String priority) {
     if (priority == 'high') {
       return Colors.red;
@@ -37,32 +38,32 @@ class _AssignessState extends State<Assigness> {
     super.initState();
     fetchWorkOrderDetailsMessages(widget.woId);
   }
-  
-  Future<void> fetchWorkOrderDetailsMessages(String woId) async {
-  final url = Uri.parse(
-      'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/workorders/Comments_get/0');
-  final response = await http.get(url);
 
-  if (response.statusCode == 200) {
-    jsonResponse = json.decode(response.body);
-    if (jsonResponse.length > 1) {
-      filterWorkOrders(searchController.text);
+  Future<void> fetchWorkOrderDetailsMessages(String woId) async {
+    final url = Uri.parse(
+        'http://srv406820.hstgr.cloud/mainthelpdev/index.php/ap4i/workorders/Comments_get/0');
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      jsonResponse = json.decode(response.body);
+      if (jsonResponse.length > 1) {
+        filterWorkOrders(searchController.text);
+      }
     }
   }
-}
 
   List<Widget> buildCommentCards() {
     if (jsonResponse.length < 2) {
       return [];
     }
-  List<dynamic> localComments;
+    List<dynamic> localComments;
 
     //final comments = jsonResponse[1];
     if (filteredWorkOrders.isNotEmpty) {
-    localComments = List.from(filteredWorkOrders);
-  } else {
-    localComments = List.from(jsonResponse[1]);
-  }
+      localComments = List.from(filteredWorkOrders);
+    } else {
+      localComments = List.from(jsonResponse[1]);
+    }
     return localComments.map<Widget>((comment) {
       final descriptionActivity = comment['description_activity'] as String;
       final dueTime = comment['due_time'] as String;
@@ -156,7 +157,7 @@ class _AssignessState extends State<Assigness> {
           ),
         ],
       ),
-         body: RefreshIndicator(
+      body: RefreshIndicator(
         onRefresh: _refresh,
         color:
             Colors.grey.shade200, // Ajusta el tono gris según tus preferencias
@@ -207,7 +208,7 @@ class _AssignessState extends State<Assigness> {
                   ),
                   SizedBox(width: 10),
                   Text(
-                    'Assigness',
+                    'AssignessP',
                     style: TextStyle(
                       color: Colors.black,
                       fontWeight: FontWeight.w500,

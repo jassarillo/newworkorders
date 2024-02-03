@@ -96,7 +96,7 @@ class _CheckInState extends State<CheckIn> {
         context: context,
         builder: (context) {
           return AlertDialog(
-            title: Text('Permiso denegado'),
+            title: Text('Permiso denegado ios'),
             content: Text(
                 'Debes conceder permisos de ubicación para obtener la ubicación.'),
             actions: <Widget>[

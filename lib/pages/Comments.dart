@@ -1,12 +1,18 @@
-import 'dart:io';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:image_picker/image_picker.dart';
 
 class Comments extends StatefulWidget {
   final String woId;
-  const Comments({required this.woId, Key? key}) : super(key: key);
+  final String idUser;
+  final String user_type_id;
+
+  const Comments({
+    required this.woId,
+    required this.idUser,
+    required this.user_type_id,
+    Key? key,
+  }) : super(key: key);
 
   @override
   State<Comments> createState() => _CommentsState();
@@ -14,51 +20,27 @@ class Comments extends StatefulWidget {
 
 class _CommentsState extends State<Comments> {
   String woId = '';
-  String priority = '';
-  String description = '';
   List<dynamic> jsonResponse = [];
-
-  Color getColorForPriority(String priority) {
-    if (priority == 'high') {
-      return Colors.red;
-    } else if (priority == 'medium') {
-      return Colors.yellow;
-    } else {
-      return Colors.green;
-    }
-  }
+  dynamic selectedEmployedId;
+  TextEditingController commentController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    fetchWorkOrderDetailsMessages(widget.woId);
+    fetchAssignessList(widget.woId);
   }
 
-  Future<void> fetchWorkOrderDetailsMessages(String woId) async {
+  Future<void> fetchAssignessList(String woId) async {
     final url = Uri.parse(
-        //'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/workorders/Comments_get/$woId');
-        'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/comments/List_get/383');
+        'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/comments/list_get/$woId');
     final response = await http.get(url);
-    // jsonResponse = json.decode(response.body);
-    // final woData = jsonResponse[0][0];
-    // final comments = jsonResponse[1];
-    //print(comments);
-     if (response.statusCode == 200) {
+    if (response.statusCode == 200) {
+      print(response.body);
       jsonResponse = json.decode(response.body);
-      if (jsonResponse.length > 1) {
-        final woData = jsonResponse[0][0];
-        //final comments = jsonResponse[1];
-
-        final woId = woData['wo_id'] as String;
-        final priority = woData['priority'] as String;
-        final description = woData['description'] as String;
-
-        setState(() {
-          this.woId = woId;
-          this.priority = priority;
-          this.description = description;
-        });
+      if (jsonResponse.isNotEmpty && jsonResponse.length > 1) {
+        print(jsonResponse[1]);
       }
+      setState(() {});
     }
   }
 
@@ -67,50 +49,87 @@ class _CommentsState extends State<Comments> {
       return [];
     }
 
-    final comments = jsonResponse[1];
-    return comments.map<Widget>((comment) {
-      final descriptionActivity = comment['comment'] as String;
-      final date = comment['date'] as String;
-      final type = comment['type'] as String;
-      final name = comment['name'] as String;
+    List<dynamic> localComments = List.from(jsonResponse[1]);
 
-      return Card(
-        child: ListTile(
-          title: Wrap(
-            alignment: WrapAlignment.spaceBetween,
-            runSpacing: 2,
-            children: <Widget>[
-              Text(
-                name,
-                style: const TextStyle(
-                  color: Colors.black,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
-                ),
-              ),
-              Text(
-                type,
-                style: const TextStyle(color: Colors.black,
-                 fontSize: 14),
-              ),
-              Container(
-                padding: const EdgeInsets.all(3),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(5),
-                ),
-                child: Text(
-                  date,
-                  style: TextStyle(color: Colors.black,
-                  fontSize: 14,),
-                ),
-              ),
-            ],
+    return localComments.map<Widget>((comment) {
+      final date = comment['date'] as String;
+      final name = comment['name'] as String;
+      final commentText = comment['comment'] as String;
+
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 1.0, horizontal: 16.0),
+        child: Card(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12.0),
           ),
-          subtitle: Text(descriptionActivity),
+          child: ListTile(
+            title: Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              runSpacing: 2,
+              children: <Widget>[
+                Text(
+                  name,
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15,
+                  ),
+                ),
+                Text(
+                  date,
+                  style: TextStyle(
+                    color: Colors.grey,
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(commentText),
+              ],
+            ),
+          ),
         ),
       );
     }).toList();
   }
+Future<void> saveData() async {
+  final url = Uri.parse(
+      'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/comments/In_post');
+
+  final response = await http.post(url, body: {
+    'user_id': '1',
+    'wo_id': widget.woId,
+    'comment': commentController.text,
+  });
+  print(response.body);
+  if (response.statusCode == 200) {
+    final responseData = json.decode(response.body) as bool;
+    final message = responseData ? 'Success' : 'Error';
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(message),
+          content: Text('Success!'), // Cambia el mensaje según tus necesidades
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+  } else {
+    print('Error to save data. Code: ${response.statusCode}');
+  }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -121,10 +140,9 @@ class _CommentsState extends State<Comments> {
         centerTitle: true,
         leading: IconButton(
           onPressed: () {
-            Navigator.of(context).pop(); // Esta línea permite retroceder
+            Navigator.of(context).pop();
           },
-          icon: const Icon(
-              Icons.arrow_back), // Cambia el ícono a una flecha hacia atrás
+          icon: const Icon(Icons.arrow_back),
         ),
         actions: [
           IconButton(
@@ -133,92 +151,40 @@ class _CommentsState extends State<Comments> {
           ),
         ],
       ),
-      body: Center(
-        child: Column(
-          children: <Widget>[
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: <Widget>[
-                Container(
-                  alignment: Alignment.topLeft,
-                  padding: const EdgeInsets.all(5),
-                  margin: const EdgeInsets.all(5),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      const Text(
-                        'Work Order Number',
-                        style: TextStyle(
-                          color: Color.fromARGB(255, 5, 5, 5),
-                          fontWeight: FontWeight.w500,
-                          fontSize: 15,
-                        ),
+      body: Column(
+        children: <Widget>[
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: <Widget>[
+              Container(
+                alignment: Alignment.topLeft,
+                padding: const EdgeInsets.all(5),
+                margin: const EdgeInsets.all(5),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    const Text(
+                      'Work Order Number',
+                      style: TextStyle(
+                        color: Color.fromARGB(255, 5, 5, 5),
+                        fontWeight: FontWeight.w500,
+                        fontSize: 15,
                       ),
-                      Text(
-                        this.woId,
-                        style: TextStyle(
-                          color: Color.fromARGB(255, 5, 5, 5),
-                          fontWeight: FontWeight.w500,
-                          fontSize: 35,
-                        ),
+                    ),
+                    Text(
+                      widget.woId,
+                      style: TextStyle(
+                        color: Color.fromARGB(255, 5, 5, 5),
+                        fontWeight: FontWeight.w500,
+                        fontSize: 35,
                       ),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  child: Container(
-                    margin: const EdgeInsets.all(10),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: <Widget>[
-                        const Text(
-                          'Status',
-                          style: TextStyle(
-                            color: Color.fromARGB(255, 5, 5, 5),
-                            fontWeight: FontWeight.w500,
-                            fontSize: 16,
-                          ),
-                        ),
-                        Text(
-                          description,
-                          style: TextStyle(color: Colors.blue),
-                        ),
-                      ],
                     ),
-                  ),
+                  ],
                 ),
-                Expanded(
-                  child: Container(
-                    margin: EdgeInsets.all(10),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: <Widget>[
-                        const Text(
-                          'Priority',
-                          style: TextStyle(
-                            color: Color.fromARGB(255, 5, 5, 5),
-                            fontWeight: FontWeight.w500,
-                            fontSize: 16,
-                          ),
-                        ),
-                        Container(
-                          padding: EdgeInsets.all(3),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(5),
-                            color: getColorForPriority(priority),
-                          ),
-                          child: Text(
-                            priority,
-                            style: TextStyle(color: Colors.white),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            Container(
+              ),
+            ],
+          ),
+          Container(
               alignment: Alignment.topLeft,
               padding: const EdgeInsets.all(10),
               margin: const EdgeInsets.all(10),
@@ -226,12 +192,12 @@ class _CommentsState extends State<Comments> {
                 children: <Widget>[
                   Icon(
                     Icons.comment,
-                    color: Colors.blue,
+                    color: Colors.grey,
                     size: 30.0,
                   ),
                   SizedBox(width: 10),
                   Text(
-                    'COMMENTS',
+                    'Comments',
                     style: TextStyle(
                       color: Colors.black,
                       fontWeight: FontWeight.w500,
@@ -241,15 +207,44 @@ class _CommentsState extends State<Comments> {
                 ],
               ),
             ),
-            Expanded(
-              child: SingleChildScrollView(
-                child: Column(
-                  children: buildCommentCards(),
-                ),
+          Container(
+            padding: const EdgeInsets.all(10),
+            margin: const EdgeInsets.all(10),
+            child: TextField(
+              controller: commentController,
+              maxLines: 4,
+              decoration: const InputDecoration(
+                labelText: 'Comment',
+                border: OutlineInputBorder(),
+                hintText: 'Write here...',
               ),
             ),
-          ],
-        ),
+          ),
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                children: buildCommentCards(),
+              ),
+            ),
+          ),
+          MaterialButton(
+            padding: const EdgeInsets.all(20),
+            minWidth: 5,
+            height: 50,
+            onPressed: saveData,
+            color: const Color.fromARGB(255, 39, 17, 243),
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                SizedBox(width: 10),
+                Text(
+                  'Save',
+                  style: TextStyle(color: Colors.white),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

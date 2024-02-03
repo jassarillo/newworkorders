@@ -54,7 +54,9 @@ Future<Map<String, dynamic>> fetchWorkOrderDetails(
   final url = Uri.parse(
       'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/workorders/Wo_get/$woId/$user_type_id/$idUser');
   final response = await http.get(url);
-  //print('$woId');
+  print('$woId');
+  print('type ' + '$user_type_id');
+  print('idus ' + '$idUser');
   //print(response.body);
   if (response.statusCode == 200) {
     final jsonResponse = json.decode(response.body);
@@ -210,6 +212,7 @@ class _WODetailState extends State<WODetail> {
             final wostatus_id = workOrderDetails?['wostatus_id'];
             final vAssigness = workOrderDetails?['vAssigness'];
             final vQuotations = workOrderDetails?['vQuotations'];
+            final due_time = workOrderDetails?['due_time'];
             // print('wostatus_id> ' + wostatus_id + ' A ' + vAssigness);
             return ListView(
               padding: const EdgeInsets.all(5),
@@ -418,7 +421,7 @@ class _WODetailState extends State<WODetail> {
                               ),
                             ),
                             Text(
-                              '12/122023',
+                              due_time,
                               style: const TextStyle(color: Colors.black),
                             ),
                           ],
@@ -506,7 +509,9 @@ class _WODetailState extends State<WODetail> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        if (workOrderDetails?['wostatus_id'] == '10' && (widget.user_type_id != '3' && widget.user_type_id != '7'))
+                        if (workOrderDetails?['wostatus_id'] == '10' &&
+                            (widget.user_type_id != '3' &&
+                                widget.user_type_id != '7'))
                           ElevatedButton(
                             onPressed: () {
                               // Lógica para ApproveDiez
@@ -532,7 +537,10 @@ class _WODetailState extends State<WODetail> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => Comments(woId: woId),
+                        builder: (context) => Comments(
+                            woId: woId,
+                            idUser: widget.idUser,
+                            user_type_id: widget.user_type_id),
                       ),
                     );
                   },
@@ -570,7 +578,10 @@ class _WODetailState extends State<WODetail> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => Comments(woId: woId),
+                          builder: (context) => Comments(
+                              woId: woId,
+                              idUser: widget.idUser,
+                              user_type_id: widget.user_type_id),
                         ),
                       );
                     },
