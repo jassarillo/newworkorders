@@ -86,14 +86,41 @@ class _AddNewOrderState extends State<AddNewOrder> {
   }
 
   List<XFile>? imageFileList = [];
-  
+
   void selectImages() async {
-    print('peticion btn...');
-    final List<XFile>? selectedImages = await imagePicker.pickMultiImage();
-    if (selectedImages!.isNotEmpty) {
-      imageFileList!.addAll(selectedImages);
+    try {
+      print('peticion btn...');
+      final List<XFile>? selectedImages = await imagePicker.pickMultiImage();
+      print('XFile');
+      if (selectedImages != null && selectedImages.isNotEmpty) {
+        print('if selected ims');
+        imageFileList!.addAll(selectedImages);
+        setState(() {});
+      } else {
+        // El usuario canceló la selección de imágenes
+        print('Selección de imágenes cancelada.');
+      }
+    } catch (e) {
+      // Manejar la excepción
+      print('Error al seleccionar imágenes: $e');
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text("Error"),
+            content: const Text("Error al seleccionar imágenes."),
+            actions: <Widget>[
+              TextButton(
+                child: const Text("Aceptar"),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
     }
-    setState(() {});
   }
 
   void removeImage(int index) {
