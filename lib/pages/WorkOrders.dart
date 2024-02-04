@@ -25,10 +25,14 @@ class _WorkOrdersState extends State<WorkOrders> {
   }
 
   Future<void> fetchWorkOrders() async {
+    //print('iniciando peticion');
     final response = await http.get(Uri.parse(
         'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/workorders/Wo_get/0/${widget.user_type_id}/${widget.idUser}'));
+    //print('...');
+    //print(response.body);
     if (response.statusCode == 200) {
-      print(response.body);
+      //print(response.body);
+      //print('peticion url');
       final List<dynamic> data = json.decode(response.body);
       if (data is List) {
         setState(() {
@@ -119,8 +123,9 @@ class _WorkOrdersState extends State<WorkOrders> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                      builder: (context) =>
-                           AddNewOrder(idUser: widget.idUser, user_type_id: widget.user_type_id)),
+                      builder: (context) => AddNewOrder(
+                          idUser: widget.idUser,
+                          user_type_id: widget.user_type_id)),
                 );
               },
               color: const Color.fromARGB(255, 39, 17, 243),
@@ -239,15 +244,14 @@ class WorkOrderCard extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) =>
-                WODetail(woId: woId, 
-                priority: 'high', 
-                idUser: this.idUser, 
-                latitude: this.latitude, 
+            builder: (context) => WODetail(
+                woId: woId,
+                priority: 'high',
+                idUser: this.idUser,
+                latitude: this.latitude,
                 longitude: this.longitude,
                 user_type_id: this.user_type_id,
-                site_id: this.site_id
-                ),
+                site_id: this.site_id),
           ),
         );
       },
@@ -283,7 +287,7 @@ class WorkOrderCard extends StatelessWidget {
                     ),
                   ),
                   Text(
-                       '$descriptionStatus'  ,
+                    '$descriptionStatus',
                     style: const TextStyle(color: Colors.blue),
                   ),
                   Container(

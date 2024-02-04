@@ -97,7 +97,7 @@ class _OperativeCostState extends State<OperativeCost> {
       final description = opCost['description'] as String?;
       final url_file = opCost['url'] as String?;
 
-      print('Description: $description, URL: $url_file');
+      //print('Description: $description, URL: $url_file');
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 1.0, horizontal: 16.0),
         child: GestureDetector(
@@ -127,7 +127,8 @@ class _OperativeCostState extends State<OperativeCost> {
                   ),
                 ],
               ),
-              subtitle: Text("Date: ${opCost['date']} | Cost: ${opCost['cost']}"),
+              subtitle:
+                  Text("Date: ${opCost['date']} | Cost: ${opCost['cost']}"),
               trailing: url_file != null && url_file.isNotEmpty
                   ? GestureDetector(
                       onTap: () async {
@@ -155,14 +156,10 @@ class _OperativeCostState extends State<OperativeCost> {
   }
 
   Future<void> saveData() async {
-    if (selectedWoId == null) {
-      return;
-    }
 
     final url = Uri.parse(
       'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/operativecost/In_post',
     );
-
     var request = http.MultipartRequest('POST', url)
       ..fields['user_id'] = widget.idUser
       ..fields['wo_id'] = widget.woId
@@ -174,16 +171,41 @@ class _OperativeCostState extends State<OperativeCost> {
           filePath,
         ),
       );
-
+    //print(request);
     var streamedResponse = await request.send();
 
     // Obtén la respuesta completa utilizando http.Response.fromStream
     var response = await http.Response.fromStream(streamedResponse);
 
-    print(response.body);
+    //print(response.body);
     if (response.statusCode == 200) {
-      // Maneja el caso de éxito, por ejemplo, muestra una alerta.
-      // Navega a WODetail.dart utilizando Navigator.push
+           // Analiza el cuerpo de la respuesta JSON
+      final responseData = json.decode(response.body);
+      final tipo = responseData['tipo'] as int?;
+      final message = responseData['msn'] as String?;
+
+      if (tipo != null && tipo == 1 && message != null) {
+        // Muestra un AlertDialog
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text('Success'),
+              content: Text(message),
+              actions: <Widget>[
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: Text('OK'),
+                ),
+              ],
+            );
+          },
+        );
+      } else {
+        print('Respuesta inesperada: $responseData');
+      }
     } else {
       print('Error al guardar los datos. Código: ${response.statusCode}');
       print('Cuerpo de la respuesta: ${response.body}');

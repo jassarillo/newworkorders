@@ -54,9 +54,9 @@ Future<Map<String, dynamic>> fetchWorkOrderDetails(
   final url = Uri.parse(
       'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/workorders/Wo_get/$woId/$user_type_id/$idUser');
   final response = await http.get(url);
-  print('$woId');
-  print('type ' + '$user_type_id');
-  print('idus ' + '$idUser');
+  // print('$woId');
+  // print('type ' + '$user_type_id');
+  // print('idus ' + '$idUser');
   //print(response.body);
   if (response.statusCode == 200) {
     final jsonResponse = json.decode(response.body);
@@ -212,8 +212,11 @@ class _WODetailState extends State<WODetail> {
             final wostatus_id = workOrderDetails?['wostatus_id'];
             final vAssigness = workOrderDetails?['vAssigness'];
             final vQuotations = workOrderDetails?['vQuotations'];
-            final due_time = workOrderDetails?['due_time'];
-            // print('wostatus_id> ' + wostatus_id + ' A ' + vAssigness);
+            final created_date = workOrderDetails?['created_date'];
+            final closedDate = workOrderDetails?['closed_date'] as String?;
+            final due_time = workOrderDetails?['due_time'] as String?;
+            
+              // print('wostatus_id> ' + wostatus_id + ' A ' + vAssigness);
             return ListView(
               padding: const EdgeInsets.all(5),
               children: <Widget>[
@@ -395,7 +398,7 @@ class _WODetailState extends State<WODetail> {
                               ),
                             ),
                             Text(
-                              '4 Days',
+                              due_time ?? '',
                               style: const TextStyle(
                                 color: Color.fromARGB(255, 5, 5, 5),
                                 fontWeight: FontWeight.w500,
@@ -421,7 +424,7 @@ class _WODetailState extends State<WODetail> {
                               ),
                             ),
                             Text(
-                              due_time,
+                              created_date,
                               style: const TextStyle(color: Colors.black),
                             ),
                           ],
@@ -449,7 +452,7 @@ class _WODetailState extends State<WODetail> {
                                 borderRadius: BorderRadius.circular(5),
                               ),
                               child: Text(
-                                '12/122023',
+                                closedDate ?? '',
                                 style: const TextStyle(color: Colors.black),
                               ),
                             ),

@@ -10,11 +10,9 @@ class AddNewOrder extends StatefulWidget {
   final String idUser;
   final String user_type_id;
 
-  const AddNewOrder({
-    Key? key,
-    required this.idUser,
-    required this.user_type_id
-  }) : super(key: key);
+  const AddNewOrder(
+      {Key? key, required this.idUser, required this.user_type_id})
+      : super(key: key);
 
   @override
   State<AddNewOrder> createState() => _AddNewOrderState();
@@ -76,7 +74,7 @@ class _AddNewOrderState extends State<AddNewOrder> {
   DateTime? selectedDate;
   String problem = '';
   int insertId = 0;
-  int brand_id =0;
+  int brand_id = 0;
   //XFile? _selectedImage;
   var imagePicker;
 
@@ -88,8 +86,9 @@ class _AddNewOrderState extends State<AddNewOrder> {
   }
 
   List<XFile>? imageFileList = [];
-
+  
   void selectImages() async {
+    print('peticion btn...');
     final List<XFile>? selectedImages = await imagePicker.pickMultiImage();
     if (selectedImages!.isNotEmpty) {
       imageFileList!.addAll(selectedImages);
@@ -160,7 +159,7 @@ class _AddNewOrderState extends State<AddNewOrder> {
       try {
         final response = await request.send();
         final responseBody = await response.stream.bytesToString();
-        print(responseBody);
+        //print(responseBody);
         if (response.statusCode == 200) {
           final data = jsonDecode(responseBody);
           insertId = data['insert_id'];
@@ -182,11 +181,11 @@ class _AddNewOrderState extends State<AddNewOrder> {
                         context,
                         MaterialPageRoute(
                           builder: (context) => TroubleShooting(
-                              insertId: insertId.toString(),
-                              idUser: widget.idUser,
-                              user_type_id: widget.user_type_id,
-                              brand_id: brand_id.toString(),
-                              ),
+                            insertId: insertId.toString(),
+                            idUser: widget.idUser,
+                            user_type_id: widget.user_type_id,
+                            brand_id: brand_id.toString(),
+                          ),
                         ),
                       );
                     },
@@ -288,7 +287,7 @@ class _AddNewOrderState extends State<AddNewOrder> {
       Uri.parse(
           'http://srv406820.hstgr.cloud/mainthelpdev/index.php/api/workorders/Catalog_get'),
     );
-    print(">>> " + response.body);
+    //print(">>> " + response.body);
     if (response.statusCode == 200) {
       final List<dynamic> data = json.decode(response.body);
       final List<WorkOrderUnit> statuses = (data.isNotEmpty && data[0] is List)
@@ -315,8 +314,8 @@ class _AddNewOrderState extends State<AddNewOrder> {
         body: {
           "site_id": siteId,
         });
-    print("Unit_asset_post");
-    print(response.statusCode);
+    //print("Unit_asset_post");
+    //print(response.statusCode);
     if (response.statusCode == 200) {
       final List<dynamic> data = json.decode(response.body);
       final List<WorkOrderAsset> assets =
@@ -416,27 +415,35 @@ class _AddNewOrderState extends State<AddNewOrder> {
                 ).toList(),
               ),
               const SizedBox(height: 10),
-              DropdownButtonFormField<WorkOrderAsset>(
-                decoration: const InputDecoration(
-                  labelText: 'Asset',
-                  border: OutlineInputBorder(),
-                  contentPadding:
-                      EdgeInsets.symmetric(vertical: 16.0, horizontal: 1.0),
-                ),
-                value: selectedAsset,
-                onChanged: (WorkOrderAsset? newValue) {
-                  setState(() {
-                    selectedAsset = newValue;
-                  });
-                },
-                items: workOrderAssetList.map<DropdownMenuItem<WorkOrderAsset>>(
-                  (WorkOrderAsset value) {
-                    return DropdownMenuItem<WorkOrderAsset>(
-                      value: value,
-                      child: Text(value.AssetName),
-                    );
+              Container(
+                constraints:
+                    BoxConstraints(maxWidth: 350), // Establece un ancho máximo
+                child: DropdownButtonFormField<WorkOrderAsset>(
+                  decoration: const InputDecoration(
+                    labelText: 'Asset',
+                    border: OutlineInputBorder(),
+                    contentPadding: EdgeInsets.symmetric(
+                        vertical: 16.0,
+                        horizontal: 16.0), // Ajusta el espaciado
+                  ),
+                  value: selectedAsset,
+                  onChanged: (WorkOrderAsset? newValue) {
+                    setState(() {
+                      selectedAsset = newValue;
+                    });
                   },
-                ).toList(),
+                  isExpanded:
+                      true, // Permite que el DropdownButtonFormField ocupe el ancho máximo disponible
+                  items:
+                      workOrderAssetList.map<DropdownMenuItem<WorkOrderAsset>>(
+                    (WorkOrderAsset value) {
+                      return DropdownMenuItem<WorkOrderAsset>(
+                        value: value,
+                        child: Text(value.AssetName),
+                      );
+                    },
+                  ).toList(),
+                ),
               ),
               const SizedBox(height: 10),
               DropdownButtonFormField<WorkOrderPriority>(

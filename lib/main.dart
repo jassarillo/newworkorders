@@ -48,8 +48,8 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
             'password': password,
           });
       final Map<String, dynamic> responseData = json.decode(response.body);
-      print('type... ' + responseData['estatus']);
-      print('status... ' + response.body);
+      //print('type... ' + responseData['estatus']);
+      //print('status... ' + response.body);
       if (responseData['estatus'] == "200") {
         // ignore: use_build_context_synchronously
         final String idUser = responseData['idUser'];
@@ -142,8 +142,8 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
     try {
       final Position position = await Geolocator.getCurrentPosition(
           desiredAccuracy: LocationAccuracy.high);
-      //print(position.latitude);
-      //print(position.longitude);
+      print(position.latitude);
+      print(position.longitude);
       //double distanceInMeters = await Geolocator.distanceBetween(
       //position.latitude, position.longitude, 19.426314, -98.877709);
       setState(() {
