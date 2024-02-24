@@ -202,9 +202,10 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
             TextButton(
               onPressed: () {},
               child: const Text(
-                'Forgot Password',
+                '',
               ),
             ),
+            
             MaterialButton(
               minWidth: 200.0,
               height: 50,
