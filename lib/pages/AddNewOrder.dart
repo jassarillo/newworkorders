@@ -408,69 +408,137 @@ class _AddNewOrderState extends State<AddNewOrder> {
                   ),
                 ),
               ),
-              DropdownButtonFormField<WorkOrderUnit>(
-                decoration: const InputDecoration(
-                  labelText: 'Unit',
-                  border: OutlineInputBorder(),
-                  contentPadding:
-                      EdgeInsets.symmetric(vertical: 16.0, horizontal: 1.0),
-                  // Puedes personalizar el estilo de la etiqueta aquí si es necesario.
-                ),
-                value: selectedStatus,
-                onChanged: (WorkOrderUnit? newValue) {
+              Autocomplete<WorkOrderUnit>(
+                optionsBuilder: (TextEditingValue textEditingValue) {
+                  return workOrderUnitList.where((WorkOrderUnit option) {
+                    return option.description
+                        .toLowerCase()
+                        .contains(textEditingValue.text.toLowerCase());
+                  });
+                },
+                onSelected: (WorkOrderUnit selectedOption) {
                   setState(() {
-                    selectedStatus = newValue;
+                    selectedStatus = selectedOption;
                   });
 
-                  if (newValue != null) {
-                    fetchWorkOrderAssetList(newValue.woStatusId);
-                    // Cuando obtengas la lista de activos, selecciona el primero por defecto
-                    if (workOrderAssetList.isNotEmpty) {
-                      setState(() {
-                        selectedAsset = workOrderAssetList[0];
-                      });
-                    }
+                  fetchWorkOrderAssetList(selectedOption.woStatusId);
+
+                  if (workOrderAssetList.isNotEmpty) {
+                    setState(() {
+                      selectedAsset = workOrderAssetList[0];
+                    });
                   }
                 },
-                items: workOrderUnitList.map<DropdownMenuItem<WorkOrderUnit>>(
-                  (WorkOrderUnit value) {
-                    return DropdownMenuItem<WorkOrderUnit>(
-                      value: value,
-                      child: Text(value.description),
-                    );
-                  },
-                ).toList(),
+                fieldViewBuilder: (BuildContext context,
+                    TextEditingController textEditingController,
+                    FocusNode focusNode,
+                    VoidCallback onFieldSubmitted) {
+                  textEditingController.text =
+                      selectedStatus?.description ?? '';
+                  return TextFormField(
+                    controller: textEditingController,
+                    focusNode: focusNode,
+                    onFieldSubmitted: (String value) {
+                      onFieldSubmitted();
+                    },
+                    decoration: const InputDecoration(
+                      labelText: 'Unit',
+                      border: OutlineInputBorder(),
+                      contentPadding:
+                          EdgeInsets.symmetric(vertical: 16.0, horizontal: 1.0),
+                    ),
+                  );
+                },
+                optionsViewBuilder: (BuildContext context,
+                    AutocompleteOnSelected<WorkOrderUnit> onSelected,
+                    Iterable<WorkOrderUnit> options) {
+                  return Align(
+                    alignment: Alignment.topLeft,
+                    child: Material(
+                      elevation: 4.0,
+                      child: SizedBox(
+                        height: 200.0,
+                        child: ListView.builder(
+                          padding: EdgeInsets.all(8.0),
+                          itemCount: options.length,
+                          itemBuilder: (BuildContext context, int index) {
+                            final WorkOrderUnit option =
+                                options.elementAt(index);
+                            return ListTile(
+                              title: Text(option.description),
+                              onTap: () {
+                                onSelected(option);
+                              },
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                  );
+                },
               ),
               const SizedBox(height: 10),
-              Container(
-                constraints:
-                    BoxConstraints(maxWidth: 350), // Establece un ancho máximo
-                child: DropdownButtonFormField<WorkOrderAsset>(
-                  decoration: const InputDecoration(
-                    labelText: 'Asset',
-                    border: OutlineInputBorder(),
-                    contentPadding: EdgeInsets.symmetric(
-                        vertical: 16.0,
-                        horizontal: 16.0), // Ajusta el espaciado
-                  ),
-                  value: selectedAsset,
-                  onChanged: (WorkOrderAsset? newValue) {
-                    setState(() {
-                      selectedAsset = newValue;
-                    });
-                  },
-                  isExpanded:
-                      true, // Permite que el DropdownButtonFormField ocupe el ancho máximo disponible
-                  items:
-                      workOrderAssetList.map<DropdownMenuItem<WorkOrderAsset>>(
-                    (WorkOrderAsset value) {
-                      return DropdownMenuItem<WorkOrderAsset>(
-                        value: value,
-                        child: Text(value.AssetName),
-                      );
+              Autocomplete<WorkOrderAsset>(
+                optionsBuilder: (TextEditingValue textEditingValue) {
+                  return workOrderAssetList.where((WorkOrderAsset option) {
+                    return option.AssetName.toLowerCase()
+                        .contains(textEditingValue.text.toLowerCase());
+                  });
+                },
+                onSelected: (WorkOrderAsset selectedOption) {
+                  setState(() {
+                    selectedAsset = selectedOption;
+                  });
+                },
+                fieldViewBuilder: (BuildContext context,
+                    TextEditingController textEditingController,
+                    FocusNode focusNode,
+                    VoidCallback onFieldSubmitted) {
+                  // Establecer el valor del controlador con el nombre del activo seleccionado
+                  textEditingController.text = selectedAsset?.AssetName ?? '';
+                  return TextFormField(
+                    controller: textEditingController,
+                    focusNode: focusNode,
+                    onFieldSubmitted: (String value) {
+                      onFieldSubmitted();
                     },
-                  ).toList(),
-                ),
+                    decoration: const InputDecoration(
+                      labelText: 'Asset',
+                      border: OutlineInputBorder(),
+                      contentPadding: EdgeInsets.symmetric(
+                        vertical: 16.0,
+                        horizontal: 16.0,
+                      ),
+                    ),
+                  );
+                },
+                optionsViewBuilder: (BuildContext context,
+                    AutocompleteOnSelected<WorkOrderAsset> onSelected,
+                    Iterable<WorkOrderAsset> options) {
+                  return Align(
+                    alignment: Alignment.topLeft,
+                    child: Material(
+                      elevation: 4.0,
+                      child: SizedBox(
+                        height: 200.0,
+                        child: ListView.builder(
+                          padding: EdgeInsets.all(8.0),
+                          itemCount: options.length,
+                          itemBuilder: (BuildContext context, int index) {
+                            final WorkOrderAsset option =
+                                options.elementAt(index);
+                            return ListTile(
+                              title: Text(option.AssetName),
+                              onTap: () {
+                                onSelected(option);
+                              },
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                  );
+                },
               ),
               const SizedBox(height: 10),
               DropdownButtonFormField<WorkOrderPriority>(
