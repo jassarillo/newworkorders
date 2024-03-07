@@ -457,10 +457,9 @@ class _TroubleShootingState extends State<TroubleShooting> {
                 },
                 child: Text('Save List'),
                 style: ElevatedButton.styleFrom(
-                  primary:
-                      const Color(0xFF2711F3), // Usando formato hexadecimal
                   padding: const EdgeInsets.all(20),
                   minimumSize: Size(MediaQuery.of(context).size.width, 50),
+                  backgroundColor: const Color(0xFF2711F3),  // Usando formato hexadecimal
                 ),
               ),
             ),
