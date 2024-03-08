@@ -531,7 +531,7 @@ class _CheckInState extends State<CheckIn> {
                             padding: const EdgeInsets.all(20),
                             minimumSize: Size(double.infinity,
                                 50), // Ancho de pantalla completa
-                            primary: const Color.fromARGB(255, 39, 17, 243),
+                            backgroundColor: const Color(0xFF2711F3), 
                           ),
                           child: Text(
                             'Punch In',
