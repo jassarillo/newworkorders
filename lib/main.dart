@@ -20,7 +20,7 @@ class MyApp extends StatelessWidget {
         //appBar: AppBar(title: const Text(_title)),
         body: MyStatefulWidget(),
       ),
-       debugShowCheckedModeBanner: false,
+      debugShowCheckedModeBanner: false,
     );
   }
 }
@@ -56,12 +56,12 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
         final String user_type_id = responseData['user_type_id'];
         // if (responseData['user_type_id'] == "3" ||
         //     responseData['user_type_id'] == "7" ) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: (context) =>
-                    WorkOrders(idUser: idUser, user_type_id: user_type_id)),
-          );
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) =>
+                  WorkOrders(idUser: idUser, user_type_id: user_type_id)),
+        );
         //}
       } else if (responseData['estatus'] == "2020") {
         const errorMessage = "User or password failed.";
@@ -111,6 +111,8 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
     //getLocation();
     requestLocationPermission();
   }
+
+
 
   Future<void> requestLocationPermission() async {
     final status = await Permission.location.request();
@@ -205,7 +207,7 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
                 '',
               ),
             ),
-            
+
             MaterialButton(
               minWidth: 200.0,
               height: 50,
