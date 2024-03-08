@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'WODetail.dart';
 import 'AddNewOrder.dart';
+import 'curbAppeal/CurbAppeal.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
@@ -66,39 +67,41 @@ class _WorkOrdersState extends State<WorkOrders> {
         iconTheme: const IconThemeData(color: Colors.black),
         centerTitle: true,
         leading: PopupMenuButton<String>(
+          icon: Icon(Icons.menu), // Icono de tres líneas horizontales (Menu)
           onSelected: (value) {
             if (value == 'login') {
               // Implementa la lógica para manejar la opción "Login"
-            } else if (value == 'back') {
-              Navigator.of(context).pop();
+            } else if (value == 'workOrder') {
+              // Redirige a la pantalla de Work Order
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => AddNewOrder(
+                        idUser: widget.idUser,
+                        user_type_id: widget.user_type_id)),
+              );
+            } else if (value == 'curbAppeal') {
+              // Redirige a la pantalla de Curb Appeal
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => CurbAppeal(
+                        idUser: widget.idUser,
+                        user_type_id: widget.user_type_id)),
+              );
             }
           },
           itemBuilder: (BuildContext context) => [
             const PopupMenuItem<String>(
-              value: 'login',
-              child: Text('Login'),
+              value: 'workOrder',
+              child: Text('Work Order'),
             ),
             const PopupMenuItem<String>(
-              value: 'back',
-              child: Text('Back'),
+              value: 'curbAppeal',
+              child: Text('Curb Appeal'),
             ),
           ],
-          child: InkWell(
-            onTap:
-                () {}, // Puedes dejarlo vacío o agregar una acción personalizada si es necesario
-            child: Padding(
-              padding: const EdgeInsets.all(
-                  8.0), // Ajusta el padding según tus necesidades
-              child: const Icon(Icons.menu),
-            ),
-          ),
         ),
-        actions: [
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(Icons.more_vert),
-          ),
-        ],
       ),
       body: ListView(
         padding: const EdgeInsets.all(20),

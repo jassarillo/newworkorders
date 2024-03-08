@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:convert';
 import 'TroubleShooting.dart';
 import 'package:intl/intl.dart';
+import 'curbAppeal/CurbAppeal.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
@@ -360,21 +361,48 @@ class _AddNewOrderState extends State<AddNewOrder> {
 /* */
   @override
   Widget build(BuildContext context) {
+    double maxWidth = 350.0;
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.white,
         iconTheme: const IconThemeData(color: Colors.black),
         centerTitle: true,
-        leading: IconButton(
-          onPressed: () {},
-          icon: const Icon(Icons.menu),
+        leading: PopupMenuButton<String>(
+          icon: Icon(Icons.menu), // Icono de tres líneas horizontales (Menu)
+          onSelected: (value) {
+            if (value == 'login') {
+              // Implementa la lógica para manejar la opción "Login"
+            } else if (value == 'workOrder') {
+              // Redirige a la pantalla de Work Order
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => AddNewOrder(
+                        idUser: widget.idUser,
+                        user_type_id: widget.user_type_id)),
+              );
+            } else if (value == 'curbAppeal') {
+              // Redirige a la pantalla de Curb Appeal
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => CurbAppeal(
+                        idUser: widget.idUser,
+                        user_type_id: widget.user_type_id)),
+              );
+            }
+          },
+          itemBuilder: (BuildContext context) => [
+            const PopupMenuItem<String>(
+              value: 'workOrder',
+              child: Text('Work Order'),
+            ),
+            const PopupMenuItem<String>(
+              value: 'curbAppeal',
+              child: Text('Curb Appeal'),
+            ),
+          ],
         ),
-        actions: [
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(Icons.more_vert),
-          ),
-        ],
       ),
       body: Center(
         child: SingleChildScrollView(
@@ -413,7 +441,7 @@ class _AddNewOrderState extends State<AddNewOrder> {
                   labelText: 'Unit',
                   border: OutlineInputBorder(),
                   contentPadding:
-                      EdgeInsets.symmetric(vertical: 16.0, horizontal: 1.0),
+                      EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
                   // Puedes personalizar el estilo de la etiqueta aquí si es necesario.
                 ),
                 value: selectedStatus,
@@ -442,35 +470,28 @@ class _AddNewOrderState extends State<AddNewOrder> {
                 ).toList(),
               ),
               const SizedBox(height: 10),
-              Container(
-                constraints:
-                    BoxConstraints(maxWidth: 350), // Establece un ancho máximo
-                child: DropdownButtonFormField<WorkOrderAsset>(
-                  decoration: const InputDecoration(
-                    labelText: 'Asset',
-                    border: OutlineInputBorder(),
-                    contentPadding: EdgeInsets.symmetric(
-                        vertical: 16.0,
-                        horizontal: 16.0), // Ajusta el espaciado
-                  ),
-                  value: selectedAsset,
-                  onChanged: (WorkOrderAsset? newValue) {
-                    setState(() {
-                      selectedAsset = newValue;
-                    });
-                  },
-                  isExpanded:
-                      true, // Permite que el DropdownButtonFormField ocupe el ancho máximo disponible
-                  items:
-                      workOrderAssetList.map<DropdownMenuItem<WorkOrderAsset>>(
-                    (WorkOrderAsset value) {
-                      return DropdownMenuItem<WorkOrderAsset>(
-                        value: value,
-                        child: Text(value.AssetName),
-                      );
-                    },
-                  ).toList(),
+              DropdownButtonFormField<WorkOrderAsset>(
+                decoration: const InputDecoration(
+                  labelText: 'Asset',
+                  border: OutlineInputBorder(),
+                  contentPadding:
+                      EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
                 ),
+                value: selectedAsset,
+                onChanged: (WorkOrderAsset? newValue) {
+                  setState(() {
+                    selectedAsset = newValue;
+                  });
+                },
+                isExpanded: true,
+                items: workOrderAssetList.map<DropdownMenuItem<WorkOrderAsset>>(
+                  (WorkOrderAsset value) {
+                    return DropdownMenuItem<WorkOrderAsset>(
+                      value: value,
+                      child: Text(value.AssetName),
+                    );
+                  },
+                ).toList(),
               ),
               const SizedBox(height: 10),
               DropdownButtonFormField<WorkOrderPriority>(
@@ -478,7 +499,7 @@ class _AddNewOrderState extends State<AddNewOrder> {
                   labelText: 'Criticality',
                   border: OutlineInputBorder(),
                   contentPadding:
-                      EdgeInsets.symmetric(vertical: 16.0, horizontal: 1.0),
+                      EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
                 ),
                 value: selectedPriority,
                 onChanged: (WorkOrderPriority? newValue) {
